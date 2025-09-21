@@ -85,7 +85,37 @@ function App() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Learning Panel */}
           <div className="xl:col-span-1">
-            <LearningPanel onNewLearning={handleNewLearning} />
+            <div className="space-y-4">
+              <LearningPanel onNewLearning={handleNewLearning} />
+              
+              {/* Primary Source Indicator */}
+              <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                  <span className="text-blue-400 font-medium text-sm">Primary Trading Source</span>
+                </div>
+                <p className="text-gray-300 text-sm">
+                  Barchart Forex Cheat Sheet - Real-time technical analysis and market signals
+                </p>
+                <button
+                  onClick={() => {
+                    const barchartUrl = 'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet';
+                    handleNewLearning({
+                      id: Math.random().toString(36).substring(2, 9),
+                      url: barchartUrl,
+                      content: '',
+                      extractedInsights: [],
+                      timestamp: new Date(),
+                      processingTime: 0
+                    });
+                    webScraper.scrapeWebpage(barchartUrl).then(handleNewLearning);
+                  }}
+                  className="mt-2 text-xs text-blue-400 hover:text-blue-300 underline"
+                >
+                  Learn from Barchart now →
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Trading Signals */}

@@ -37,7 +37,7 @@ export class TradingEngine {
   }
 
   private generateTradingSignal() {
-    const symbols = ['BTC/USD', 'ETH/USD', 'TSLA', 'AAPL', 'GOOGL', 'MSFT', 'AMZN'];
+    const symbols = ['XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'BTC/USD', 'ETH/USD', 'TSLA', 'AAPL'];
     const symbol = symbols[Math.floor(Math.random() * symbols.length)];
     
     const sentimentScore = this.analyzeSentiment();
@@ -119,6 +119,10 @@ export class TradingEngine {
 
   private generatePrice(symbol: string): number {
     const basePrices: { [key: string]: number } = {
+      'XAUUSD': 2020,
+      'EURUSD': 1.0850,
+      'GBPUSD': 1.2650,
+      'USDJPY': 149.50,
       'BTC/USD': 43000,
       'ETH/USD': 2600,
       'TSLA': 240,

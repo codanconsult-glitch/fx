@@ -35,6 +35,7 @@ export const LearningPanel: React.FC<LearningPanelProps> = ({ onNewLearning }) =
 
   const handleQuickLearn = useCallback(async () => {
     const sampleUrls = [
+      'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet',
       'https://coindesk.com/markets/bitcoin-analysis',
       'https://finviz.com/news/crypto-market-update',
       'https://marketwatch.com/investing/stock-analysis',
@@ -79,7 +80,7 @@ export const LearningPanel: React.FC<LearningPanelProps> = ({ onNewLearning }) =
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Enter webpage URL to learn from..."
+              placeholder="Try: https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet"
               className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
               disabled={isLearning}
               onKeyPress={(e) => e.key === 'Enter' && !isLearning && handleLearnFromUrl()}

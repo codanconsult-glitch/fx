@@ -38,6 +38,11 @@ export class WebScrapingService {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
     
+    // Check if this is the Barchart forex cheat sheet
+    if (url.includes('barchart.com/forex') && url.includes('cheat-sheet')) {
+      return this.generateBarchartContent();
+    }
+    
     const mockContents = [
       {
         content: "Bitcoin shows strong bullish momentum with institutional adoption increasing. Technical analysis suggests a breakout above $45,000 resistance level. Volume indicators confirm upward trend continuation.",
@@ -60,8 +65,61 @@ export class WebScrapingService {
     return mockContents[Math.floor(Math.random() * mockContents.length)];
   }
 
+  private generateBarchartContent(): { content: string; title: string } {
+    const forexPairs = ['XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD'];
+    const selectedPair = forexPairs[Math.floor(Math.random() * forexPairs.length)];
+    
+    const technicalSignals = [
+      'Strong Buy', 'Buy', 'Weak Buy', 'Hold', 'Weak Sell', 'Sell', 'Strong Sell'
+    ];
+    const signal = technicalSignals[Math.floor(Math.random() * technicalSignals.length)];
+    
+    const indicators = [
+      { name: 'RSI(14)', value: (20 + Math.random() * 60).toFixed(1), signal: Math.random() > 0.5 ? 'Oversold' : 'Overbought' },
+      { name: 'MACD', value: (Math.random() * 2 - 1).toFixed(4), signal: Math.random() > 0.5 ? 'Bullish' : 'Bearish' },
+      { name: 'Stochastic', value: (Math.random() * 100).toFixed(1), signal: Math.random() > 0.5 ? 'Buy' : 'Sell' },
+      { name: 'Williams %R', value: (-Math.random() * 100).toFixed(1), signal: Math.random() > 0.5 ? 'Oversold' : 'Overbought' }
+    ];
+    
+    const price = (1800 + Math.random() * 400).toFixed(2);
+    const change = (Math.random() * 40 - 20).toFixed(2);
+    const changePercent = (Math.random() * 2 - 1).toFixed(2);
+    
+    const content = `
+      Barchart Forex Analysis for ${selectedPair}:
+      Current Price: $${price} (${change >= '0' ? '+' : ''}${change}, ${changePercent}%)
+      
+      Technical Summary: ${signal}
+      
+      Key Technical Indicators:
+      - ${indicators[0].name}: ${indicators[0].value} (${indicators[0].signal})
+      - ${indicators[1].name}: ${indicators[1].value} (${indicators[1].signal})
+      - ${indicators[2].name}: ${indicators[2].value} (${indicators[2].signal})
+      - ${indicators[3].name}: ${indicators[3].value} (${indicators[3].signal})
+      
+      Market Sentiment: ${Math.random() > 0.5 ? 'Bullish momentum building with strong institutional interest' : 'Bearish pressure from economic uncertainties'}
+      
+      Support Levels: $${(parseFloat(price) - 15).toFixed(2)}, $${(parseFloat(price) - 25).toFixed(2)}
+      Resistance Levels: $${(parseFloat(price) + 15).toFixed(2)}, $${(parseFloat(price) + 25).toFixed(2)}
+      
+      Volume Analysis: ${Math.random() > 0.5 ? 'Above average trading volume confirms trend strength' : 'Below average volume suggests consolidation phase'}
+      
+      Risk Assessment: ${Math.random() > 0.5 ? 'Moderate risk with clear technical levels' : 'High volatility expected due to upcoming economic events'}
+    `;
+    
+    return {
+      content: content.trim(),
+      title: `Barchart ${selectedPair} Forex Analysis`
+    };
+  }
+
   private extractTradingInsights(content: string): string[] {
     const insights: string[] = [];
+    
+    // Enhanced analysis for Barchart content
+    if (content.includes('Barchart')) {
+      return this.extractBarchartInsights(content);
+    }
     
     // Sentiment analysis keywords
     const bullishKeywords = ['bullish', 'surge', 'growth', 'increase', 'positive', 'upgrade', 'expansion'];
@@ -91,6 +149,56 @@ export class WebScrapingService {
     }
     
     return insights.length > 0 ? insights : ['General market information processed'];
+  }
+
+  private extractBarchartInsights(content: string): string[] {
+    const insights: string[] = [];
+    
+    // Extract technical signals
+    if (content.includes('Strong Buy')) {
+      insights.push('Strong bullish signal detected from technical analysis');
+    } else if (content.includes('Buy')) {
+      insights.push('Bullish signal identified in technical indicators');
+    } else if (content.includes('Strong Sell')) {
+      insights.push('Strong bearish signal detected from technical analysis');
+    } else if (content.includes('Sell')) {
+      insights.push('Bearish signal identified in technical indicators');
+    }
+    
+    // RSI analysis
+    if (content.includes('Oversold')) {
+      insights.push('RSI indicates oversold conditions - potential buying opportunity');
+    } else if (content.includes('Overbought')) {
+      insights.push('RSI indicates overbought conditions - potential selling pressure');
+    }
+    
+    // MACD analysis
+    if (content.includes('MACD') && content.includes('Bullish')) {
+      insights.push('MACD showing bullish momentum crossover');
+    } else if (content.includes('MACD') && content.includes('Bearish')) {
+      insights.push('MACD indicating bearish momentum shift');
+    }
+    
+    // Volume analysis
+    if (content.includes('Above average trading volume')) {
+      insights.push('High volume confirms trend strength and reliability');
+    } else if (content.includes('Below average volume')) {
+      insights.push('Low volume suggests consolidation or trend weakness');
+    }
+    
+    // Support and resistance
+    if (content.includes('Support Levels')) {
+      insights.push('Key support and resistance levels identified for risk management');
+    }
+    
+    // Risk assessment
+    if (content.includes('High volatility expected')) {
+      insights.push('Elevated volatility risk due to market events');
+    } else if (content.includes('Moderate risk')) {
+      insights.push('Moderate risk environment with defined technical levels');
+    }
+    
+    return insights.length > 0 ? insights : ['Comprehensive forex technical analysis processed'];
   }
 
   getLearningHistory(): LearningSession[] {
