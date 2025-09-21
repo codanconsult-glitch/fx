@@ -92,28 +92,31 @@ function App() {
               <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                  <span className="text-blue-400 font-medium text-sm">Primary Trading Source</span>
+                  <span className="text-blue-400 font-medium text-sm">Primary Trading Sources</span>
                 </div>
                 <p className="text-gray-300 text-sm">
-                  Barchart Forex Cheat Sheet - Real-time technical analysis and market signals
+                  Barchart Forex Analysis - XAUUSD & EURUSD technical indicators and market signals
                 </p>
-                <button
-                  onClick={() => {
-                    const barchartUrl = 'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet';
-                    handleNewLearning({
-                      id: Math.random().toString(36).substring(2, 9),
-                      url: barchartUrl,
-                      content: '',
-                      extractedInsights: [],
-                      timestamp: new Date(),
-                      processingTime: 0
-                    });
-                    webScraper.scrapeWebpage(barchartUrl).then(handleNewLearning);
-                  }}
-                  className="mt-2 text-xs text-blue-400 hover:text-blue-300 underline"
-                >
-                  Learn from Barchart now →
-                </button>
+                <div className="mt-2 flex space-x-4">
+                  <button
+                    onClick={() => {
+                      const barchartUrl = 'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet';
+                      webScraper.scrapeWebpage(barchartUrl).then(handleNewLearning);
+                    }}
+                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                  >
+                    Learn XAUUSD →
+                  </button>
+                  <button
+                    onClick={() => {
+                      const barchartUrl = 'https://www.barchart.com/forex/quotes/%5EEURUSD/cheat-sheet';
+                      webScraper.scrapeWebpage(barchartUrl).then(handleNewLearning);
+                    }}
+                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                  >
+                    Learn EURUSD →
+                  </button>
+                </div>
               </div>
             </div>
           </div>

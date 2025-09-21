@@ -36,6 +36,7 @@ export const LearningPanel: React.FC<LearningPanelProps> = ({ onNewLearning }) =
   const handleQuickLearn = useCallback(async () => {
     const sampleUrls = [
       'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet',
+      'https://www.barchart.com/forex/quotes/%5EEURUSD/cheat-sheet',
       'https://coindesk.com/markets/bitcoin-analysis',
       'https://finviz.com/news/crypto-market-update',
       'https://marketwatch.com/investing/stock-analysis',

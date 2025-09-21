@@ -40,7 +40,8 @@ export class WebScrapingService {
     
     // Check if this is the Barchart forex cheat sheet
     if (url.includes('barchart.com/forex') && url.includes('cheat-sheet')) {
-      return this.generateBarchartContent();
+      const symbol = this.extractSymbolFromUrl(url);
+      return this.generateBarchartContent(symbol);
     }
     
     const mockContents = [
@@ -65,9 +66,16 @@ export class WebScrapingService {
     return mockContents[Math.floor(Math.random() * mockContents.length)];
   }
 
-  private generateBarchartContent(): { content: string; title: string } {
-    const forexPairs = ['XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD'];
-    const selectedPair = forexPairs[Math.floor(Math.random() * forexPairs.length)];
+  private extractSymbolFromUrl(url: string): string {
+    if (url.includes('%5EXAUUSD')) return 'XAUUSD';
+    if (url.includes('%5EEURUSD')) return 'EURUSD';
+    if (url.includes('%5EGBPUSD')) return 'GBPUSD';
+    if (url.includes('%5EUSDJPY')) return 'USDJPY';
+    return 'XAUUSD'; // Default fallback
+  }
+
+  private generateBarchartContent(symbol: string = 'XAUUSD'): { content: string; title: string } {
+    const selectedPair = symbol;
     
     const technicalSignals = [
       'Strong Buy', 'Buy', 'Weak Buy', 'Hold', 'Weak Sell', 'Sell', 'Strong Sell'
@@ -81,13 +89,22 @@ export class WebScrapingService {
       { name: 'Williams %R', value: (-Math.random() * 100).toFixed(1), signal: Math.random() > 0.5 ? 'Oversold' : 'Overbought' }
     ];
     
-    const price = (1800 + Math.random() * 400).toFixed(2);
+    // Generate realistic prices based on the forex pair
+    let price: string;
+    if (selectedPair === 'EURUSD') {
+      price = (1.0500 + Math.random() * 0.1000).toFixed(4);
+    } else if (selectedPair === 'XAUUSD') {
+      price = (1800 + Math.random() * 400).toFixed(2);
+    } else {
+      price = (1.0000 + Math.random() * 0.5000).toFixed(4);
+    }
+    
     const change = (Math.random() * 40 - 20).toFixed(2);
-    const changePercent = (Math.random() * 2 - 1).toFixed(2);
+    const changePercent = (Math.random() * 2 - 1).toFixed(4);
     
     const content = `
       Barchart Forex Analysis for ${selectedPair}:
-      Current Price: $${price} (${change >= '0' ? '+' : ''}${change}, ${changePercent}%)
+      Current Price: ${selectedPair === 'XAUUSD' ? '$' : ''}${price} (${change >= '0' ? '+' : ''}${change}, ${changePercent}%)
       
       Technical Summary: ${signal}
       
@@ -105,6 +122,9 @@ export class WebScrapingService {
       Volume Analysis: ${Math.random() > 0.5 ? 'Above average trading volume confirms trend strength' : 'Below average volume suggests consolidation phase'}
       
       Risk Assessment: ${Math.random() > 0.5 ? 'Moderate risk with clear technical levels' : 'High volatility expected due to upcoming economic events'}
+      
+      ${selectedPair === 'EURUSD' ? 'ECB Policy Impact: European Central Bank monetary policy continues to influence EUR strength' : ''}
+      ${selectedPair === 'XAUUSD' ? 'Safe Haven Demand: Gold showing typical inverse correlation with USD strength' : ''}
     `;
     
     return {
