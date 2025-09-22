@@ -161,13 +161,13 @@ export class AutonomousTradingEngine {
   }
 
   private generateXAUUSDData() {
-    const basePrice = 2000 + Math.random() * 200;
+    const basePrice = 2650 + Math.random() * 100; // Current XAUUSD around $2650-2750
     return {
       currentPrice: Number(basePrice.toFixed(2)),
       rsi: 30 + Math.random() * 40,
       macd: (Math.random() - 0.5) * 2,
-      support: Number((basePrice - 20 - Math.random() * 10).toFixed(2)),
-      resistance: Number((basePrice + 20 + Math.random() * 10).toFixed(2)),
+      support: Number((basePrice - 30 - Math.random() * 15).toFixed(2)),
+      resistance: Number((basePrice + 30 + Math.random() * 15).toFixed(2)),
       volume: Math.random() * 100000,
       volatility: 0.02 + Math.random() * 0.03,
       sentiment: Math.random(),
