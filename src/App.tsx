@@ -9,7 +9,7 @@ import { TradingSignal, LearningSession, BotMemory } from './types/trading';
 
 function App() {
   const [signals, setSignals] = useState<TradingSignal[]>([]);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(true); // Always active now
   const [botMemory, setBotMemory] = useState<BotMemory>({
     totalPagesLearned: 0,
     lastLearningSession: new Date(),
@@ -43,20 +43,21 @@ function App() {
 
   // Bot toggle handler
   const handleBotToggle = useCallback(() => {
-    if (isActive) {
-      tradingEngine.stopAutonomousTrading();
-      setIsActive(false);
-    } else {
-      tradingEngine.startAutonomousTrading();
-      setIsActive(true);
-    }
-  }, [isActive, tradingEngine]);
+    // Bot is now always active, but we keep this for UI consistency
+    const currentStatus = tradingEngine.getIsMonitoring();
+    setIsActive(currentStatus);
+  }, [tradingEngine]);
 
   // Update signals periodically
   useEffect(() => {
-    const interval = setInterval(updateSignals, 1000);
+    const interval = setInterval(updateSignals, 2000); // Check every 2 seconds for new signals
     return () => clearInterval(interval);
   }, [updateSignals]);
+
+  // Initialize monitoring status
+  useEffect(() => {
+    setIsActive(tradingEngine.getIsMonitoring());
+  }, [tradingEngine]);
 
   // Get performance metrics
   const performanceMetrics = tradingEngine.getPerformanceMetrics();
@@ -91,31 +92,14 @@ function App() {
               {/* Primary Source Indicator */}
               <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-4">
                 <div className="flex items-center space-x-2 mb-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                  <span className="text-blue-400 font-medium text-sm">Primary Trading Sources</span>
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 font-medium text-sm">Auto-Monitored Sources</span>
                 </div>
                 <p className="text-gray-300 text-sm">
-                  Barchart Forex Analysis - XAUUSD & EURUSD technical indicators and market signals
+                  Continuously scanning XAUUSD & EURUSD every 5 minutes for trading opportunities
                 </p>
-                <div className="mt-2 flex space-x-4">
-                  <button
-                    onClick={() => {
-                      const barchartUrl = 'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet';
-                      webScraper.scrapeWebpage(barchartUrl).then(handleNewLearning);
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Learn XAUUSD →
-                  </button>
-                  <button
-                    onClick={() => {
-                      const barchartUrl = 'https://www.barchart.com/forex/quotes/%5EEURUSD/cheat-sheet';
-                      webScraper.scrapeWebpage(barchartUrl).then(handleNewLearning);
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Learn EURUSD →
-                  </button>
+                <div className="mt-2 text-xs text-gray-400">
+                  ✓ 2% Risk Management • ✓ Trend Following • ✓ Multi-TP Levels
                 </div>
               </div>
             </div>
@@ -145,10 +129,7 @@ function App() {
                   <div className="text-center py-12">
                     <div className="text-gray-400 text-lg mb-2">No signals yet</div>
                     <div className="text-gray-500">
-                      {isActive 
-                        ? "AI is analyzing... First signal coming soon!" 
-                        : "Start the bot to begin generating signals"
-                      }
+                      AI is continuously monitoring... Next scan in progress!
                     </div>
                   </div>
                 )}
@@ -159,8 +140,8 @@ function App() {
 
         {/* Footer */}
         <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-700">
-          <p>Autonomous AI Trading Bot • Continuously Learning & Evolving</p>
-          <p className="mt-1">⚠️ For educational purposes only. Not financial advice.</p>
+          <p>Autonomous AI Trading Bot • 5-Minute Monitoring • 2% Risk Management</p>
+          <p className="mt-1">⚠️ For educational purposes only. Not financial advice. Always verify signals independently.</p>
         </div>
       </div>
     </div>

@@ -47,7 +47,7 @@ export const SignalCard: React.FC<SignalCardProps> = ({ signal, isLatest = false
           </div>
           <div>
             <h3 className="text-white font-semibold">{signal.symbol}</h3>
-            <p className="text-gray-400 text-sm">${signal.price}</p>
+            <p className="text-gray-400 text-sm">Entry: ${signal.entryPrice}</p>
           </div>
         </div>
         
@@ -58,6 +58,47 @@ export const SignalCard: React.FC<SignalCardProps> = ({ signal, isLatest = false
           <div className="flex items-center text-gray-400 text-xs">
             <Target className="w-3 h-3 mr-1" />
             {confidencePercentage}%
+          </div>
+        </div>
+      </div>
+
+      {/* Risk Management Details */}
+      <div className="mb-3 p-3 bg-gray-700/30 rounded-lg">
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <span className="text-gray-400">Stop Loss:</span>
+            <div className="text-red-400 font-medium">${signal.stopLoss.toFixed(signal.symbol === 'EURUSD' ? 4 : 2)}</div>
+          </div>
+          <div>
+            <span className="text-gray-400">Risk:</span>
+            <div className="text-orange-400 font-medium">{signal.riskPercentage}%</div>
+          </div>
+        </div>
+        
+        <div className="mt-2">
+          <span className="text-gray-400 text-xs">Take Profits:</span>
+          <div className="flex justify-between mt-1 text-xs">
+            <div className="text-green-400">
+              TP1: ${signal.takeProfit1.toFixed(signal.symbol === 'EURUSD' ? 4 : 2)}
+            </div>
+            <div className="text-green-400">
+              TP2: ${signal.takeProfit2.toFixed(signal.symbol === 'EURUSD' ? 4 : 2)}
+            </div>
+            <div className="text-green-400">
+              TP3: ${signal.takeProfit3.toFixed(signal.symbol === 'EURUSD' ? 4 : 2)}
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-2 flex justify-between items-center text-xs">
+          <div className="text-gray-400">
+            Trend: <span className={`font-medium ${
+              signal.trend === 'BULLISH' ? 'text-green-400' : 
+              signal.trend === 'BEARISH' ? 'text-red-400' : 'text-yellow-400'
+            }`}>{signal.trend}</span>
+          </div>
+          <div className="text-gray-400">
+            R:R <span className="text-blue-400 font-medium">{signal.riskRewardRatio.toFixed(1)}</span>
           </div>
         </div>
       </div>

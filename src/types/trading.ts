@@ -3,10 +3,17 @@ export interface TradingSignal {
   symbol: string;
   signal: 'BUY' | 'SELL' | 'HOLD';
   confidence: number;
-  price: number;
+  entryPrice: number;
+  stopLoss: number;
+  takeProfit1: number;
+  takeProfit2: number;
+  takeProfit3: number;
+  riskRewardRatio: number;
   timestamp: Date;
   reasoning: string;
   source: string;
+  trend: 'BULLISH' | 'BEARISH' | 'SIDEWAYS';
+  riskPercentage: number;
 }
 
 export interface WebpageSource {
