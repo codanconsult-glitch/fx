@@ -9,8 +9,28 @@ export class TradingEngine {
   private monitoringInterval: NodeJS.Timeout | null = null;
   private webScraper = WebScrapingService.getInstance();
   private monitoredUrls = [
+    // Economic Calendar
+    'https://nfs.faireconomy.media/ff_calendar_thisweek.xml',
+    
+    // EUR/USD Analysis
+    'https://www.barchart.com/forex/quotes/%5EEURUSD/opinion',
+    'https://www.barchart.com/forex/quotes/%5EEURUSD/trading-strategies',
+    'https://www.barchart.com/forex/quotes/%5EEURUSD/cheat-sheet',
+    'https://www.barchart.com/forex/quotes/%5EEURUSD/news',
+    'https://www.barchart.com/forex/quotes/%5EEURUSD/opinion-legacy',
+    
+    // XAU/USD Analysis
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/overview',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/interactive-chart',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/technical-chart',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/opinion',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/trading-strategies',
     'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet',
-    'https://www.barchart.com/forex/quotes/%5EEURUSD/cheat-sheet'
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/price-history/historical',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/news',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/performance',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/performance?mode=weekly',
+    'https://www.barchart.com/forex/quotes/%5EXAUUSD/performance?mode=monthly'
   ];
 
   static getInstance() {

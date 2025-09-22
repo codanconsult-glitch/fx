@@ -93,13 +93,13 @@ function App() {
               <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-green-400 font-medium text-sm">Auto-Monitored Sources</span>
+                  <span className="text-green-400 font-medium text-sm">Comprehensive Market Analysis</span>
                 </div>
                 <p className="text-gray-300 text-sm">
-                  Continuously scanning XAUUSD & EURUSD every 5 minutes for trading opportunities
+                  Monitoring 16+ sources: Economic calendar, technical analysis, market news, and trading strategies
                 </p>
                 <div className="mt-2 text-xs text-gray-400">
-                  ✓ 2% Risk Management • ✓ Trend Following • ✓ Multi-TP Levels
+                  ✓ Economic Events • ✓ Technical Analysis • ✓ Market Sentiment • ✓ 2% Risk Management
                 </div>
               </div>
             </div>
@@ -140,7 +140,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-700">
-          <p>Autonomous AI Trading Bot • 5-Minute Monitoring • 2% Risk Management</p>
+          <p>Autonomous AI Trading Bot • 16+ Market Sources • 5-Minute Monitoring • 2% Risk Management</p>
           <p className="mt-1">⚠️ For educational purposes only. Not financial advice. Always verify signals independently.</p>
         </div>
       </div>

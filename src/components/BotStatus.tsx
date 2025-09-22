@@ -25,7 +25,7 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
               <span className="text-green-400">
-                Continuous Monitoring Active
+                Comprehensive Market Monitoring Active
               </span>
               <Clock className="w-3 h-3 text-green-400" />
               <span className="text-green-400 text-xs">Every 5 min</span>
@@ -43,14 +43,14 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
           
           <div className="flex items-center space-x-2 px-6 py-3 bg-green-600/20 border border-green-500/30 rounded-lg">
             <Activity className="w-5 h-5 text-green-400 animate-pulse" />
-            <span className="text-green-400 font-medium">Auto-Monitoring</span>
+            <span className="text-green-400 font-medium">Multi-Source Analysis</span>
           </div>
         </div>
       </div>
 
       <div className="mt-4 flex items-center space-x-2 text-green-400">
         <Activity className="w-4 h-4 animate-bounce" />
-        <span className="text-sm">AI continuously monitors Barchart XAUUSD & EURUSD every 5 minutes...</span>
+        <span className="text-sm">AI monitors 16+ market sources including economic calendar, technical analysis, and news every 5 minutes...</span>
       </div>
     </div>
   );
