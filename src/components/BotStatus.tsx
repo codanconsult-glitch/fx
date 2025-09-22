@@ -1,8 +1,8 @@
 import React from 'react';
-import { Bot, Power, Pause, Play, Activity, Clock } from 'lucide-react';
+import { Bot, Activity, Clock, Database, Zap } from 'lucide-react';
 
 interface BotStatusProps {
-  isActive: boolean; // This will always be true now since monitoring is continuous
+  isActive: boolean;
   onToggle: () => void;
   botMemory: {
     totalPagesLearned: number;
@@ -21,11 +21,11 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
           </div>
           
           <div>
-            <h1 className="text-2xl font-bold text-white">AI Trading Bot</h1>
+            <h1 className="text-2xl font-bold text-white">Autonomous AI Trading Bot</h1>
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
               <span className="text-green-400">
-                Comprehensive Market Monitoring Active
+                Autonomous Market Analysis Active
               </span>
               <Clock className="w-3 h-3 text-green-400" />
               <span className="text-green-400 text-xs">Every 5 min</span>
@@ -34,23 +34,28 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
         </div>
 
         <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 rounded-lg">
+            <Database className="w-4 h-4 text-purple-400" />
+            <span className="text-purple-400 text-sm">Supabase Brain</span>
+          </div>
+          
           <div className="text-right hidden sm:block">
             <div className="text-white font-semibold">Knowledge Score: {Math.round(botMemory.knowledgeScore * 100)}%</div>
             <div className="text-gray-400 text-sm">
-              {botMemory.totalPagesLearned} pages learned
+              {botMemory.totalPagesLearned} data points processed
             </div>
           </div>
           
           <div className="flex items-center space-x-2 px-6 py-3 bg-green-600/20 border border-green-500/30 rounded-lg">
-            <Activity className="w-5 h-5 text-green-400 animate-pulse" />
-            <span className="text-green-400 font-medium">Multi-Source Analysis</span>
+            <Zap className="w-5 h-5 text-green-400 animate-pulse" />
+            <span className="text-green-400 font-medium">Autonomous Mode</span>
           </div>
         </div>
       </div>
 
       <div className="mt-4 flex items-center space-x-2 text-green-400">
         <Activity className="w-4 h-4 animate-bounce" />
-        <span className="text-sm">AI monitors 16+ market sources including economic calendar, technical analysis, and news every 5 minutes...</span>
+        <span className="text-sm">Autonomous AI continuously monitors 20+ market sources, updates brain data in Supabase, and generates signals every 5 minutes...</span>
       </div>
     </div>
   );
