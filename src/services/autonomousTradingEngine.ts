@@ -1,5 +1,6 @@
 import { TradingSignal } from '../types/trading';
 import { SupabaseBrainService, BrainData, TradingSignalDB } from './supabaseClient';
+import { AIAnalysisEngine } from './aiAnalysisEngine';
 
 interface NewsEvent {
   time: Date;
@@ -166,19 +167,40 @@ export class AutonomousTradingEngine {
 
   private async performMonitoringCycle() {
     const timestamp = new Date().toLocaleTimeString();
-    console.log(`🔍 [${timestamp}] Enhanced scan: Analyzing market sources and news events...`);
+    console.log(`🔍 [${timestamp}] Real-time Barchart extraction and AI analysis...`);
     
     // Check for upcoming high-impact news
     await this.checkUpcomingNews();
     
-    // Process multiple sources simultaneously
-    const promises = this.monitoredSources.map(url => this.analyzeSource(url));
+    // Generate signals using real content extraction and AI analysis
+    await this.generateRealTimeSignals();
     
-    try {
-      await Promise.allSettled(promises);
-      console.log(`✅ [${timestamp}] Enhanced monitoring cycle completed`);
-    } catch (error) {
-      console.error('Error in monitoring cycle:', error);
+    console.log(`✅ [${timestamp}] Real-time analysis cycle completed`);
+  }
+
+  private async generateRealTimeSignals() {
+    const symbols = ['XAUUSD', 'EURUSD'];
+    
+    for (const symbol of symbols) {
+      try {
+        console.log(`🧠 Generating real-time signal for ${symbol}...`);
+        
+        // Use AI Analysis Engine with real content extraction
+        const signal = await AIAnalysisEngine.analyzeSymbol(symbol);
+        
+        if (signal) {
+          await this.saveAndAddSignal(signal);
+          console.log(`📊 Real-time ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence)`);
+        } else {
+          console.log(`⏸️ No signal generated for ${symbol} - conditions not met`);
+        }
+        
+        // Add delay between symbols to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+      } catch (error) {
+        console.error(`Error generating signal for ${symbol}:`, error);
+      }
     }
   }
 

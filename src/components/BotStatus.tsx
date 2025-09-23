@@ -25,7 +25,7 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
               <span className="text-green-400">
-                Enhanced Market + News Analysis Active
+                Real-time Barchart Extraction + AI Analysis Active
               </span>
               <Clock className="w-3 h-3 text-green-400" />
               <span className="text-green-400 text-xs">Every 10 min</span>
@@ -55,7 +55,7 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
 
       <div className="mt-4 flex items-center space-x-2 text-green-400">
         <Activity className="w-4 h-4 animate-bounce" />
-        <span className="text-sm">Enhanced AI monitors 25+ sources including Forex Calendar, Barchart News & Analysis, generates signals every 10 minutes with pre-news alerts...</span>
+        <span className="text-sm">Real-time extraction from Barchart Cheat Sheet, Opinion, News + Forex Calendar. AI analysis generates signals every 10 minutes with 2% risk management...</span>
       </div>
     </div>
   );
