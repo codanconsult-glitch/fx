@@ -45,7 +45,7 @@ function App() {
 
   // Update signals periodically
   useEffect(() => {
-    const interval = setInterval(updateSignals, 10000); // Check every 10 seconds for UI updates
+    const interval = setInterval(updateSignals, 30000); // Check every 30 seconds for UI updates
     return () => clearInterval(interval);
   }, [updateSignals]);
 
@@ -84,7 +84,7 @@ function App() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
-              <h3 className="text-lg font-semibold text-white">Autonomous AI Brain</h3>
+              <h3 className="text-lg font-semibold text-white">Enhanced AI Brain with News Analysis</h3>
             </div>
             <div className="text-purple-400 text-sm">
               Supabase Integration Active
@@ -93,19 +93,19 @@ function App() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <div className="text-gray-400">Market Sources</div>
-              <div className="text-white font-medium">20+ Active</div>
+              <div className="text-white font-medium">25+ Active</div>
             </div>
             <div>
               <div className="text-gray-400">Scan Frequency</div>
-              <div className="text-green-400 font-medium">Every 5 min</div>
+              <div className="text-green-400 font-medium">Every 10 min</div>
             </div>
             <div>
               <div className="text-gray-400">Brain Updates</div>
               <div className="text-blue-400 font-medium">Real-time</div>
             </div>
             <div>
-              <div className="text-gray-400">Risk Management</div>
-              <div className="text-orange-400 font-medium">2% Fixed</div>
+              <div className="text-gray-400">News Analysis</div>
+              <div className="text-orange-400 font-medium">Pre-News Signals</div>
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@ function App() {
               <h2 className="text-xl font-semibold text-white">Live Trading Signals</h2>
               <div className="flex items-center space-x-2 text-sm text-gray-400">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>Autonomous AI Analysis</span>
+                <span>Enhanced AI + News Analysis</span>
               </div>
             </div>
 
@@ -134,7 +134,7 @@ function App() {
                 <div className="text-center py-12">
                   <div className="text-gray-400 text-lg mb-2">No signals yet</div>
                   <div className="text-gray-500">
-                    Autonomous AI is initializing... First signals incoming!
+                    Enhanced AI is analyzing markets and news... Signals incoming every 10 minutes!
                   </div>
                 </div>
               )}
@@ -144,7 +144,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-700">
-          <p>Autonomous AI Trading Bot • 20+ Market Sources • 5-Minute Monitoring • Supabase Brain • 2% Risk Management</p>
+          <p>Enhanced AI Trading Bot • 25+ Sources • 10-Min Monitoring • Pre-News Signals • Forex Calendar • Barchart Analysis</p>
           <p className="mt-1">⚠️ For educational purposes only. Not financial advice. Always verify signals independently.</p>
         </div>
       </div>

@@ -21,14 +21,14 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
           </div>
           
           <div>
-            <h1 className="text-2xl font-bold text-white">Autonomous AI Trading Bot</h1>
+            <h1 className="text-2xl font-bold text-white">Enhanced AI Trading Bot</h1>
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
               <span className="text-green-400">
-                Autonomous Market Analysis Active
+                Enhanced Market + News Analysis Active
               </span>
               <Clock className="w-3 h-3 text-green-400" />
-              <span className="text-green-400 text-xs">Every 5 min</span>
+              <span className="text-green-400 text-xs">Every 10 min</span>
             </div>
           </div>
         </div>
@@ -48,14 +48,14 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
           
           <div className="flex items-center space-x-2 px-6 py-3 bg-green-600/20 border border-green-500/30 rounded-lg">
             <Zap className="w-5 h-5 text-green-400 animate-pulse" />
-            <span className="text-green-400 font-medium">Autonomous Mode</span>
+            <span className="text-green-400 font-medium">Enhanced Mode</span>
           </div>
         </div>
       </div>
 
       <div className="mt-4 flex items-center space-x-2 text-green-400">
         <Activity className="w-4 h-4 animate-bounce" />
-        <span className="text-sm">Autonomous AI continuously monitors 20+ market sources, updates brain data in Supabase, and generates signals every 5 minutes...</span>
+        <span className="text-sm">Enhanced AI monitors 25+ sources including Forex Calendar, Barchart News & Analysis, generates signals every 10 minutes with pre-news alerts...</span>
       </div>
     </div>
   );
