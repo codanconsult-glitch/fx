@@ -21,11 +21,11 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
           </div>
           
           <div>
-            <h1 className="text-2xl font-bold text-white">Enhanced AI Trading Bot</h1>
+            <h1 className="text-2xl font-bold text-white">Advanced AI Trading Bot</h1>
             <div className="flex items-center space-x-2 text-sm">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+              <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></div>
               <span className="text-green-400">
-                Real-time Barchart Extraction + AI Analysis Active
+                Advanced AI + Real Barchart Analysis Active (GMT+3)
               </span>
               <Clock className="w-3 h-3 text-green-400" />
               <span className="text-green-400 text-xs">Every 10 min</span>
@@ -47,15 +47,15 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
           </div>
           
           <div className="flex items-center space-x-2 px-6 py-3 bg-green-600/20 border border-green-500/30 rounded-lg">
-            <Zap className="w-5 h-5 text-green-400 animate-pulse" />
-            <span className="text-green-400 font-medium">Enhanced Mode</span>
+            <Zap className="w-5 h-5 text-purple-400 animate-pulse" />
+            <span className="text-purple-400 font-medium">Advanced AI Mode</span>
           </div>
         </div>
       </div>
 
       <div className="mt-4 flex items-center space-x-2 text-green-400">
         <Activity className="w-4 h-4 animate-bounce" />
-        <span className="text-sm">Real-time extraction from Barchart Cheat Sheet, Opinion, News + Forex Calendar. AI analysis generates signals every 10 minutes with 2% risk management...</span>
+        <span className="text-sm">Advanced AI extracts real content from Barchart Cheat Sheet, Interactive Charts, Opinion & News. Generates high-quality signals every 10 minutes (GMT+3) with 2% risk management and trend-following strategy...</span>
       </div>
     </div>
   );

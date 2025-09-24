@@ -1,6 +1,7 @@
 import { TradingSignal } from '../types/trading';
 import { SupabaseBrainService, BrainData, TradingSignalDB } from './supabaseClient';
-import { AIAnalysisEngine } from './aiAnalysisEngine';
+import { AdvancedAIAnalyzer } from './advancedAIAnalyzer';
+import { AdvancedContentExtractor } from './advancedContentExtractor';
 
 interface NewsEvent {
   time: Date;
@@ -57,7 +58,7 @@ export class AutonomousTradingEngine {
   }
 
   private async initializeAutonomousMonitoring() {
-    console.log('🤖 Enhanced AI Trading Bot: Initializing 10-minute monitoring with news awareness...');
+    console.log('🤖 ADVANCED AI Trading Bot: Initializing 10-minute real-time Barchart analysis...');
     
     // Load existing brain data
     await this.loadBrainData();
@@ -154,7 +155,7 @@ export class AutonomousTradingEngine {
   private startContinuousMonitoring() {
     if (this.monitoringInterval) return;
     
-    console.log('🔄 Starting enhanced monitoring every 10 minutes with news awareness...');
+    console.log('🔄 Starting ADVANCED monitoring every 10 minutes with real Barchart extraction...');
     
     // Initial scan
     this.performMonitoringCycle();
@@ -166,40 +167,47 @@ export class AutonomousTradingEngine {
   }
 
   private async performMonitoringCycle() {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(`🔍 [${timestamp}] Real-time Barchart extraction and AI analysis...`);
+    const gmtPlus3Time = AdvancedContentExtractor.getCurrentGMTPlus3Time();
+    const timestamp = gmtPlus3Time.toLocaleTimeString();
+    console.log(`🔍 [${timestamp} GMT+3] ADVANCED real-time Barchart extraction and AI analysis...`);
     
+    // Check if market is open
+    if (!AdvancedContentExtractor.isMarketHours()) {
+      console.log(`⏰ Market closed (GMT+3). Skipping analysis cycle.`);
+      return;
+    }
+
     // Check for upcoming high-impact news
     await this.checkUpcomingNews();
     
     // Generate signals using real content extraction and AI analysis
-    await this.generateRealTimeSignals();
+    await this.generateAdvancedRealTimeSignals();
     
-    console.log(`✅ [${timestamp}] Real-time analysis cycle completed`);
+    console.log(`✅ [${timestamp} GMT+3] ADVANCED analysis cycle completed`);
   }
 
-  private async generateRealTimeSignals() {
+  private async generateAdvancedRealTimeSignals() {
     const symbols = ['XAUUSD', 'EURUSD'];
     
     for (const symbol of symbols) {
       try {
-        console.log(`🧠 Generating real-time signal for ${symbol}...`);
+        console.log(`🧠 ADVANCED AI analysis for ${symbol} with real Barchart extraction...`);
         
-        // Use AI Analysis Engine with real content extraction
-        const signal = await AIAnalysisEngine.analyzeSymbol(symbol);
+        // Use Advanced AI Analyzer with comprehensive content extraction
+        const signal = await AdvancedAIAnalyzer.analyzeSymbolComprehensively(symbol);
         
         if (signal) {
           await this.saveAndAddSignal(signal);
-          console.log(`📊 Real-time ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence)`);
+          console.log(`📊 ADVANCED ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence)`);
         } else {
-          console.log(`⏸️ No signal generated for ${symbol} - conditions not met`);
+          console.log(`⏸️ No ADVANCED signal for ${symbol} - quality/trend conditions not met`);
         }
         
-        // Add delay between symbols to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Add delay between symbols to avoid API rate limiting
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
       } catch (error) {
-        console.error(`Error generating signal for ${symbol}:`, error);
+        console.error(`Error in ADVANCED analysis for ${symbol}:`, error);
       }
     }
   }
