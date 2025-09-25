@@ -82,8 +82,7 @@ export class AdvancedContentExtractor {
         {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json'
           }
         }
       );
@@ -132,8 +131,7 @@ export class AdvancedContentExtractor {
         {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json'
           }
         }
       );
@@ -179,8 +177,7 @@ export class AdvancedContentExtractor {
         {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json'
           }
         }
       );
@@ -225,8 +222,7 @@ export class AdvancedContentExtractor {
         {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Accept': 'application/json'
           }
         }
       );
