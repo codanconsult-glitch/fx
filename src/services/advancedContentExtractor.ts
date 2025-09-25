@@ -53,12 +53,17 @@ export class AdvancedContentExtractor {
   }> {
     console.log(`🔍 Starting comprehensive analysis for ${symbol} (GMT+3)...`);
     
-    const [cheatSheet, interactiveChart, opinion, news] = await Promise.all([
-      this.extractCheatSheet(symbol),
-      this.extractInteractiveChart(symbol),
-      this.extractOpinion(symbol),
-      this.extractNews(symbol)
-    ]);
+    // Sequential requests with delays to avoid rate limiting
+    const cheatSheet = await this.extractCheatSheet(symbol);
+    await this.delay(2000); // 2 second delay
+    
+    const interactiveChart = await this.extractInteractiveChart(symbol);
+    await this.delay(2000); // 2 second delay
+    
+    const opinion = await this.extractOpinion(symbol);
+    await this.delay(2000); // 2 second delay
+    
+    const news = await this.extractNews(symbol);
 
     return {
       cheatSheet,
@@ -66,6 +71,10 @@ export class AdvancedContentExtractor {
       opinion,
       news
     };
+  }
+
+  private static delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private static async extractCheatSheet(symbol: string): Promise<ExtractedContent | null> {
