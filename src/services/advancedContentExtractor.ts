@@ -42,7 +42,7 @@ interface DiffbotResponse {
 
 export class AdvancedContentExtractor {
   private static readonly DIFFBOT_TOKEN = "9715a82cffb568a58f1f0c44fb6d5b1c";
-  private static readonly BASE_URL = "https://api.diffbot.com/v3/analyze";
+  private static readonly BASE_URL = "/api/diffbot/v3/analyze";
   private static readonly GMT_OFFSET = 3; // GMT+3 timezone
 
   static async extractComprehensiveAnalysis(symbol: string): Promise<{

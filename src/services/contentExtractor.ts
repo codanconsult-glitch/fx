@@ -28,7 +28,7 @@ interface DiffbotResponse {
 
 export class ContentExtractor {
   private static readonly DIFFBOT_TOKEN = "9715a82cffb568a58f1f0c44fb6d5b1c";
-  private static readonly BASE_URL = "https://api.diffbot.com/v3/analyze";
+  private static readonly BASE_URL = "/api/diffbot/v3/analyze";
 
   static async extractBarchartCheatSheet(symbol: string): Promise<ExtractedContent | null> {
     const url = `https://www.barchart.com/forex/quotes/%5E${symbol}/cheat-sheet`;
