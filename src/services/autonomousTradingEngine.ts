@@ -86,7 +86,7 @@ export class AutonomousTradingEngine {
   private async loadRecentSignals() {
     try {
       const dbSignals = await SupabaseBrainService.getRecentSignals(50);
-      this.signals = dbSignals.map(this.convertDBSignalToTradingSignal);
+      this.signals = dbSignals.map((dbSignal) => this.convertDBSignalToTradingSignal(dbSignal));
     } catch (error) {
       console.error('Error loading recent signals:', error);
     }
