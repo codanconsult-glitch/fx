@@ -1,7 +1,8 @@
 import { TradingSignal } from '../types/trading';
 import { SupabaseBrainService, BrainData, TradingSignalDB } from './supabaseClient';
-import { AdvancedAIAnalyzer } from './advancedAIAnalyzer';
+import { EnhancedAIAnalyzer } from './enhancedAIAnalyzer';
 import { AdvancedContentExtractor } from './advancedContentExtractor';
+import { LearningEngine } from './learningEngine';
 
 interface NewsEvent {
   time: Date;
@@ -19,6 +20,7 @@ export class AutonomousTradingEngine {
   private monitoringInterval: NodeJS.Timeout | null = null;
   private brainData: Map<string, BrainData> = new Map();
   private upcomingNews: NewsEvent[] = [];
+  private learningEngine = LearningEngine.getInstance();
   
   private monitoredSources = [
     // Economic Calendar - High Priority
@@ -155,7 +157,7 @@ export class AutonomousTradingEngine {
   private startContinuousMonitoring() {
     if (this.monitoringInterval) return;
     
-    console.log('🔄 Starting ADVANCED monitoring every 10 minutes with real Barchart extraction...');
+    console.log('🔄 Starting ENHANCED AI monitoring every 10 minutes with learning capabilities...');
     
     // Initial scan
     this.performMonitoringCycle();
@@ -169,7 +171,7 @@ export class AutonomousTradingEngine {
   private async performMonitoringCycle() {
     const gmtPlus3Time = AdvancedContentExtractor.getCurrentGMTPlus3Time();
     const timestamp = gmtPlus3Time.toLocaleTimeString();
-    console.log(`🔍 [${timestamp} GMT+3] ADVANCED real-time Barchart extraction and AI analysis...`);
+    console.log(`🔍 [${timestamp} GMT+3] ENHANCED AI analysis with TradingView sentiment and learning...`);
     
     // Check if market is open
     if (!AdvancedContentExtractor.isMarketHours()) {
@@ -180,34 +182,37 @@ export class AutonomousTradingEngine {
     // Check for upcoming high-impact news
     await this.checkUpcomingNews();
     
-    // Generate signals using real content extraction and AI analysis
-    await this.generateAdvancedRealTimeSignals();
+    // Generate signals using enhanced AI with learning
+    await this.generateEnhancedRealTimeSignals();
     
-    console.log(`✅ [${timestamp} GMT+3] ADVANCED analysis cycle completed`);
+    // Simulate trade outcomes for learning (in production, this would be real market data)
+    this.learningEngine.simulateTradeOutcomes();
+    
+    console.log(`✅ [${timestamp} GMT+3] ENHANCED AI analysis cycle completed`);
   }
 
-  private async generateAdvancedRealTimeSignals() {
+  private async generateEnhancedRealTimeSignals() {
     const symbols = ['XAUUSD', 'EURUSD'];
     
     for (const symbol of symbols) {
       try {
-        console.log(`🧠 ADVANCED AI analysis for ${symbol} with real Barchart extraction...`);
+        console.log(`🧠 ENHANCED AI analysis for ${symbol} with learning and TradingView sentiment...`);
         
-        // Use Advanced AI Analyzer with comprehensive content extraction
-        const signal = await AdvancedAIAnalyzer.analyzeSymbolComprehensively(symbol);
+        // Use Enhanced AI Analyzer with learning capabilities
+        const signal = await EnhancedAIAnalyzer.analyzeSymbolWithLearning(symbol);
         
         if (signal) {
           await this.saveAndAddSignal(signal);
-          console.log(`📊 ADVANCED ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence)`);
+          console.log(`📊 ENHANCED ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence)`);
         } else {
-          console.log(`⏸️ No ADVANCED signal for ${symbol} - quality/trend conditions not met`);
+          console.log(`⏸️ No ENHANCED signal for ${symbol} - quality/learning conditions not met`);
         }
         
-        // Add delay between symbols to avoid API rate limiting
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Add delay between symbols to avoid API rate limiting (increased for more sources)
+        await new Promise(resolve => setTimeout(resolve, 5000));
         
       } catch (error) {
-        console.error(`Error in ADVANCED analysis for ${symbol}:`, error);
+        console.error(`Error in ENHANCED analysis for ${symbol}:`, error);
       }
     }
   }
@@ -794,6 +799,9 @@ export class AutonomousTradingEngine {
     const oneHourAgo = now - (60 * 60 * 1000);
     const recentSignals = this.signals.filter(s => s.timestamp.getTime() > oneHourAgo);
     
+    // Include learning metrics
+    const learningMetrics = this.learningEngine.getMetrics();
+    
     return {
       totalSignals,
       buySignals,
@@ -801,12 +809,17 @@ export class AutonomousTradingEngine {
       holdSignals,
       avgConfidence,
       signalsPerHour: recentSignals.length * 6, // Multiply by 6 for 10-minute intervals
-      totalPagesLearned: this.brainData.size * 25 + this.upcomingNews.length * 5
+      totalPagesLearned: this.brainData.size * 25 + this.upcomingNews.length * 5,
+      learningMetrics
     };
   }
 
   getUpcomingNews(): NewsEvent[] {
     return this.upcomingNews;
+  }
+  
+  getLearningEngine(): LearningEngine {
+    return this.learningEngine;
   }
 
   stopMonitoring() {

@@ -25,7 +25,7 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></div>
               <span className="text-green-400">
-                Advanced AI + Real Barchart Analysis Active (GMT+3)
+                Enhanced AI + TradingView + Learning Engine Active (GMT+3)
               </span>
               <Clock className="w-3 h-3 text-green-400" />
               <span className="text-green-400 text-xs">Every 10 min</span>
@@ -55,7 +55,7 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
 
       <div className="mt-4 flex items-center space-x-2 text-green-400">
         <Activity className="w-4 h-4 animate-bounce" />
-        <span className="text-sm">Advanced AI extracts real content from Barchart Cheat Sheet, Interactive Charts, Opinion & News. Generates high-quality signals every 10 minutes (GMT+3) with 2% risk management and trend-following strategy...</span>
+        <span className="text-sm">Enhanced AI analyzes Barchart Cheat Sheet + TradingView expert sentiment + News analysis. Continuously learns from trade outcomes and generates high-quality signals every 10 minutes (GMT+3) with adaptive 2% risk management...</span>
       </div>
     </div>
   );

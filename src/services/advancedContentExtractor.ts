@@ -126,6 +126,60 @@ export class AdvancedContentExtractor {
     }
   }
 
+  private static async extractCheatSheet(symbol: string): Promise<ExtractedContent | null> {
+    const url = `https://www.barchart.com/forex/quotes/%5E${symbol}/cheat-sheet`;
+    
+    try {
+      console.log(`📊 Extracting Trader's Cheat Sheet for ${symbol}...`);
+      
+      const payload = { url };
+      const searchParams = new URLSearchParams(payload);
+      
+      const response = await fetch(
+        `${this.BASE_URL}?token=${this.DIFFBOT_TOKEN}&${searchParams.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result: DiffbotResponse = await response.json();
+      
+      if (!result.objects || result.objects.length === 0) {
+        console.warn(`No cheat sheet content extracted for ${symbol}`);
+        return null;
+      }
+
+      const content = result.objects[0];
+      const extractedContent: ExtractedContent = {
+        title: content.title,
+        text: content.text,
+        html: content.html,
+        sentiment: content.sentiment || 0.5,
+        confidence: 0.95, // Highest confidence for professional cheat sheet
+        technicalIndicators: this.parseCheatSheetIndicators(content.text || '', symbol)
+      };
+
+      console.log(`✅ Cheat Sheet extracted: ${content.text?.length || 0} characters`);
+      return extractedContent;
+
+    } catch (error) {
+      console.error(`Failed to extract cheat sheet for ${symbol}:`, error);
+      return null;
+    }
+  }
+
+  // Make this method public for use by EnhancedAIAnalyzer
+  static async extractCheatSheet(symbol: string): Promise<ExtractedContent | null> {
+    return this.extractCheatSheet(symbol);
+  }
+
   private static async extractInteractiveChart(symbol: string): Promise<ExtractedContent | null> {
     const url = `https://www.barchart.com/forex/quotes/%5E${symbol}/interactive-chart`;
     
