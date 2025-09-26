@@ -71,10 +71,10 @@ export class SupabaseBrainService {
         .from('brain_data')
         .select('*')
         .eq('symbol', symbol)
-        .single();
+        .limit(1);
       
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
     } catch (error) {
       console.error('Error fetching brain data:', error);
       const stored = localStorage.getItem(`brain_${symbol}`);
