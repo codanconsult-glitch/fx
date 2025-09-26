@@ -9,6 +9,8 @@ export default defineConfig({
       '/api/diffbot': {
         target: 'https://api.diffbot.com',
         changeOrigin: true,
+        timeout: 60000,
+        proxyTimeout: 60000,
         rewrite: (path) => path.replace(/^\/api\/diffbot/, '')
       }
     }
