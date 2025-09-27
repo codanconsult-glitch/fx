@@ -1,7 +1,6 @@
 import { TradingSignal } from '../types/trading';
 import { SupabaseBrainService, BrainData, TradingSignalDB } from './supabaseClient';
 import { EnhancedAIAnalyzer } from './enhancedAIAnalyzer';
-import { AdvancedContentExtractor } from './advancedContentExtractor';
 import { LearningEngine } from './learningEngine';
 
 interface NewsEvent {
@@ -169,12 +168,12 @@ export class AutonomousTradingEngine {
   }
 
   private async performMonitoringCycle() {
-    const gmtPlus3Time = AdvancedContentExtractor.getCurrentGMTPlus3Time();
+    const gmtPlus3Time = this.getCurrentGMTPlus3Time();
     const timestamp = gmtPlus3Time.toLocaleTimeString();
-    console.log(`🔍 [${timestamp} GMT+3] ENHANCED AI analysis with TradingView sentiment and learning...`);
+    console.log(`🔍 [${timestamp} GMT+3 Bucharest] ENHANCED AI analysis with TradingView, DXY, Interactive Charts, and Learning...`);
     
     // Check if market is open
-    if (!AdvancedContentExtractor.isMarketHours()) {
+    if (!this.isMarketHours()) {
       console.log(`⏰ Market closed (GMT+3). Skipping analysis cycle.`);
       return;
     }
@@ -196,14 +195,14 @@ export class AutonomousTradingEngine {
     
     for (const symbol of symbols) {
       try {
-        console.log(`🧠 ENHANCED AI analysis for ${symbol} with learning and TradingView sentiment...`);
+        console.log(`🧠 ENHANCED AI analysis for ${symbol} with TradingView, DXY, Interactive Charts, and Learning...`);
         
         // Use Enhanced AI Analyzer with learning capabilities
         const signal = await EnhancedAIAnalyzer.analyzeSymbolWithLearning(symbol);
         
         if (signal) {
           await this.saveAndAddSignal(signal);
-          console.log(`📊 ENHANCED ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence)`);
+          console.log(`📊 ENHANCED ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence) - GMT+3 Bucharest`);
         } else {
           console.log(`⏸️ No ENHANCED signal for ${symbol} - quality/learning conditions not met`);
         }
@@ -820,6 +819,23 @@ export class AutonomousTradingEngine {
   
   getLearningEngine(): LearningEngine {
     return this.learningEngine;
+  }
+
+  private getCurrentGMTPlus3Time(): Date {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    return new Date(utc + (3 * 3600000));
+  }
+
+  private isMarketHours(): boolean {
+    const gmtPlus3 = this.getCurrentGMTPlus3Time();
+    const hour = gmtPlus3.getHours();
+    const day = gmtPlus3.getDay();
+    
+    // Forex market is open 24/5, closed on weekends
+    if (day === 0 || day === 6) return false; // Sunday or Saturday
+    
+    return true;
   }
 
   stopMonitoring() {

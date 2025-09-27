@@ -84,16 +84,16 @@ function App() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
-              <h3 className="text-lg font-semibold text-white">ENHANCED AI: Barchart + TradingView + Learning (GMT+3)</h3>
+              <h3 className="text-lg font-semibold text-white">ENHANCED AI: Barchart + TradingView + DXY + Interactive Charts + Learning (GMT+3 Bucharest)</h3>
             </div>
             <div className="text-green-400 text-sm">
-              Enhanced AI + Learning Engine + Supabase
+              Enhanced AI + TradingView + DXY + Learning + Supabase
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <div className="text-gray-400">Content Sources</div>
-              <div className="text-white font-medium">Barchart + TradingView</div>
+              <div className="text-white font-medium">Barchart + TradingView + DXY</div>
             </div>
             <div>
               <div className="text-gray-400">Analysis Frequency</div>
@@ -105,7 +105,7 @@ function App() {
             </div>
             <div>
               <div className="text-gray-400">Signal Quality</div>
-              <div className="text-orange-400 font-medium">Learning AI</div>
+              <div className="text-orange-400 font-medium">Multi-Source Learning AI</div>
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@ function App() {
               <h2 className="text-xl font-semibold text-white">Live Trading Signals</h2>
               <div className="flex items-center space-x-2 text-sm text-gray-400">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>Enhanced AI + TradingView Sentiment + Learning</span>
+                <span>Enhanced AI + TradingView + DXY + Interactive Charts + Learning</span>
               </div>
             </div>
 
@@ -134,7 +134,7 @@ function App() {
                 <div className="text-center py-12">
                   <div className="text-gray-400 text-lg mb-2">No signals yet</div>
                   <div className="text-gray-500">
-                    Enhanced AI is analyzing Barchart + TradingView expert sentiment + learning from outcomes... High-quality signals every 10 minutes!
+                    Enhanced AI is analyzing Barchart + TradingView + DXY correlation + Interactive Charts + learning from outcomes... High-quality signals every 10 minutes (GMT+3 Bucharest)!
                   </div>
                 </div>
               )}
@@ -144,7 +144,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-700">
-          <p>Enhanced AI Trading Bot • Barchart + TradingView • Learning Engine • GMT+3 • 2% Adaptive Risk • 10-Min Signals</p>
+          <p>Enhanced AI Trading Bot • Barchart + TradingView + DXY + Interactive Charts • Learning Engine • GMT+3 Bucharest • 2% Adaptive Risk • 10-Min Signals</p>
           <p className="mt-1">⚠️ For educational purposes only. Not financial advice. Always verify signals independently.</p>
         </div>
       </div>

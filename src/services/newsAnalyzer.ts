@@ -16,6 +16,9 @@ interface NewsAnalysis {
   overallSentiment: number;
   marketImpact: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
   affectedSymbols: string[];
+  newsStrength: number;
+  timeToNextEvent: number;
+  marketRisk: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
 interface DiffbotResponse {
@@ -35,7 +38,7 @@ export class NewsAnalyzer {
     const barchartUrl = `https://www.barchart.com/forex/quotes/%5E${symbol}/news`;
     
     try {
-      console.log(`📰 Analyzing forex news for ${symbol}...`);
+      console.log(`📰 Analyzing forex news for ${symbol} (GMT+3 Bucharest)...`);
       
       const payload = { url: barchartUrl };
       const searchParams = new URLSearchParams(payload);
@@ -64,7 +67,7 @@ export class NewsAnalyzer {
       const content = result.objects[0];
       const analysis = this.parseNewsContent(content.text || '', symbol);
 
-      console.log(`✅ News analysis completed: ${analysis.highImpactEvents.length} high impact events`);
+      console.log(`✅ News analysis: ${analysis.highImpactEvents.length} high, ${analysis.mediumImpactEvents.length} medium, ${analysis.lowImpactEvents.length} low impact events`);
       return analysis;
 
     } catch (error) {
@@ -84,22 +87,35 @@ export class NewsAnalyzer {
       'federal reserve', 'fed', 'fomc', 'interest rate', 'rate decision',
       'non-farm payrolls', 'nfp', 'employment', 'unemployment rate',
       'gdp', 'gross domestic product', 'inflation', 'cpi', 'consumer price index',
-      'ppi', 'producer price index', 'ecb', 'european central bank',
-      'jackson hole', 'powell', 'yellen', 'lagarde'
+      'ppi', 'producer price index', 'ecb', 'european central bank', 'boe',
+      'jackson hole', 'powell', 'yellen', 'lagarde', 'bailey', 'dxy', 'dollar index',
+      'crude oil', 'wti', 'brent', 'opec', 'geopolitical', 'war', 'sanctions'
     ];
 
     // Medium impact keywords
     const mediumImpactKeywords = [
       'retail sales', 'consumer confidence', 'manufacturing', 'pmi',
       'housing starts', 'building permits', 'trade balance',
-      'industrial production', 'capacity utilization', 'jobless claims'
+      'industrial production', 'capacity utilization', 'jobless claims',
+      'ism', 'michigan sentiment', 'philadelphia fed', 'empire state'
     ];
 
     // Low impact keywords
     const lowImpactKeywords = [
       'existing home sales', 'new home sales', 'consumer credit',
-      'wholesale inventories', 'business inventories', 'construction spending'
+      'wholesale inventories', 'business inventories', 'construction spending',
+      'pending home sales', 'factory orders', 'durable goods'
     ];
+
+    // Calculate news strength and market risk
+    const newsStrength = (highImpactEvents.length * 3) + (mediumImpactEvents.length * 2) + lowImpactEvents.length;
+    let marketRisk: 'LOW' | 'MEDIUM' | 'HIGH' = 'LOW';
+    
+    if (highImpactEvents.length >= 2) marketRisk = 'HIGH';
+    else if (highImpactEvents.length >= 1 || mediumImpactEvents.length >= 3) marketRisk = 'MEDIUM';
+
+    // Estimate time to next major event (simplified)
+    const timeToNextEvent = Math.random() * 24; // Hours (would be calculated from actual calendar)
 
     // Parse high impact events
     highImpactKeywords.forEach(keyword => {
@@ -159,7 +175,10 @@ export class NewsAnalyzer {
       lowImpactEvents,
       overallSentiment,
       marketImpact,
-      affectedSymbols: [symbol]
+      affectedSymbols: [symbol],
+      newsStrength,
+      timeToNextEvent,
+      marketRisk
     };
   }
 

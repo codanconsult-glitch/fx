@@ -15,6 +15,9 @@ interface TradingViewSentiment {
   neutralCount: number;
   expertIdeas: TradingViewIdea[];
   confidence: number;
+  expertConsensus: string;
+  marketMood: string;
+  technicalBias: string;
 }
 
 interface DiffbotResponse {
@@ -34,7 +37,7 @@ export class TradingViewExtractor {
     const url = `https://www.tradingview.com/symbols/${symbol}/ideas/`;
     
     try {
-      console.log(`📊 Extracting TradingView expert sentiment for ${symbol}...`);
+      console.log(`📊 Extracting TradingView expert sentiment for ${symbol} (GMT+3 Bucharest)...`);
       
       const payload = { url };
       const searchParams = new URLSearchParams(payload);
@@ -63,7 +66,7 @@ export class TradingViewExtractor {
       const content = result.objects[0];
       const sentiment = this.analyzeTradingViewContent(content.text || '', symbol);
 
-      console.log(`✅ TradingView sentiment extracted: ${sentiment.overallSentiment} (${sentiment.confidence.toFixed(2)} confidence)`);
+      console.log(`✅ TradingView sentiment: ${sentiment.overallSentiment} (${sentiment.confidence.toFixed(2)} confidence, ${sentiment.expertConsensus})`);
       return sentiment;
 
     } catch (error) {
@@ -84,12 +87,14 @@ export class TradingViewExtractor {
     // Analyze sentiment keywords
     const bullishKeywords = [
       'buy', 'bullish', 'long', 'uptrend', 'breakout', 'support', 'bounce',
-      'rally', 'pump', 'moon', 'target', 'resistance break', 'golden cross'
+      'rally', 'pump', 'moon', 'target', 'resistance break', 'golden cross',
+      'accumulation', 'reversal up', 'higher highs', 'momentum up'
     ];
     
     const bearishKeywords = [
       'sell', 'bearish', 'short', 'downtrend', 'breakdown', 'resistance', 'dump',
-      'crash', 'fall', 'drop', 'support break', 'death cross', 'correction'
+      'crash', 'fall', 'drop', 'support break', 'death cross', 'correction',
+      'distribution', 'reversal down', 'lower lows', 'momentum down'
     ];
 
     // Count sentiment indicators
@@ -144,13 +149,30 @@ export class TradingViewExtractor {
     // Calculate confidence based on data quality
     const confidence = Math.min(0.9, 0.5 + (totalSentiment * 0.01) + (expertIdeas.length * 0.05));
 
+    // Determine expert consensus
+    let expertConsensus = 'Mixed Views';
+    if (bullishCount > bearishCount * 2) expertConsensus = 'Strong Bullish Consensus';
+    else if (bearishCount > bullishCount * 2) expertConsensus = 'Strong Bearish Consensus';
+    else if (bullishCount > bearishCount) expertConsensus = 'Bullish Leaning';
+    else if (bearishCount > bullishCount) expertConsensus = 'Bearish Leaning';
+
+    // Market mood analysis
+    const marketMood = totalSentiment > 20 ? 'High Activity' : totalSentiment > 10 ? 'Moderate Activity' : 'Low Activity';
+    
+    // Technical bias
+    const technicalBias = overallSentiment === 'BULLISH' ? 'Technical Bullish' : 
+                         overallSentiment === 'BEARISH' ? 'Technical Bearish' : 'Technical Neutral';
+
     return {
       overallSentiment,
       bullishCount,
       bearishCount,
       neutralCount: Math.max(0, 10 - bullishCount - bearishCount),
       expertIdeas: expertIdeas.slice(0, 5), // Top 5 ideas
-      confidence
+      confidence,
+      expertConsensus,
+      marketMood,
+      technicalBias
     };
   }
 }
