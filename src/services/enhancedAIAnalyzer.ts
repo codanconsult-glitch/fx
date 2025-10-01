@@ -425,7 +425,7 @@ export class EnhancedAIAnalyzer {
     const confidence = Math.min(0.95, baseConfidence + confidenceBoost + scoreConfidence);
 
     // Generate precise risk management levels
-    const riskLevels = this.calculatePreciseRiskLevels(data.symbol, signal, currentPrice, data.marketConditions);
+    const riskLevels = this.calculatePreciseRiskLevels(data.symbol, signal, currentPrice, data.marketConditions, 0.01); // 1% risk
 
     // Generate comprehensive reasoning
     const reasoning = this.generateComprehensiveReasoning(
@@ -652,8 +652,8 @@ export class EnhancedAIAnalyzer {
     return 100;
   }
 
-  private static calculatePreciseRiskLevels(symbol: string, signal: 'BUY' | 'SELL' | 'HOLD', currentPrice: number, marketConditions: any) {
-    const riskAmount = currentPrice * 0.02; // 2% risk
+  private static calculatePreciseRiskLevels(symbol: string, signal: 'BUY' | 'SELL' | 'HOLD', currentPrice: number, marketConditions: any, riskPercent: number = 0.01) {
+    const riskAmount = currentPrice * riskPercent; // 1% risk by default
     const decimals = symbol === 'EURUSD' ? 4 : 2;
 
     // Adjust risk based on market conditions

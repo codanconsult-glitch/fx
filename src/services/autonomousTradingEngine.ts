@@ -1,7 +1,8 @@
 import { TradingSignal } from '../types/trading';
 import { SupabaseBrainService, BrainData, TradingSignalDB } from './supabaseClient';
 import { EnhancedAIAnalyzer } from './enhancedAIAnalyzer';
-import { LearningEngine } from './learningEngine';
+import { EnhancedLearningEngine } from './enhancedLearningEngine';
+import { MarketPriceService } from './marketPriceService';
 
 interface NewsEvent {
   time: Date;
@@ -14,12 +15,13 @@ interface NewsEvent {
 
 export class AutonomousTradingEngine {
   private static instance: AutonomousTradingEngine;
-  private signals: TradingSignal[] = [];
+  private currentSignals: Map<string, TradingSignal> = new Map(); // One signal per symbol
+  private signalHistory: TradingSignal[] = [];
   private isMonitoring = true;
   private monitoringInterval: NodeJS.Timeout | null = null;
   private brainData: Map<string, BrainData> = new Map();
   private upcomingNews: NewsEvent[] = [];
-  private learningEngine = LearningEngine.getInstance();
+  private learningEngine = EnhancedLearningEngine.getInstance();
   
   private monitoredSources = [
     // Economic Calendar - High Priority
@@ -59,7 +61,10 @@ export class AutonomousTradingEngine {
   }
 
   private async initializeAutonomousMonitoring() {
-    console.log('🤖 ADVANCED AI Trading Bot: Initializing 10-minute real-time Barchart analysis...');
+    console.log('🤖 ENHANCED AI Trading Bot: Initializing 10-minute analysis with 1% risk management...');
+    
+    // Initialize market price service
+    MarketPriceService.initialize();
     
     // Load existing brain data
     await this.loadBrainData();
@@ -87,7 +92,18 @@ export class AutonomousTradingEngine {
   private async loadRecentSignals() {
     try {
       const dbSignals = await SupabaseBrainService.getRecentSignals(50);
-      this.signals = dbSignals.map((dbSignal) => this.convertDBSignalToTradingSignal(dbSignal));
+      this.signalHistory = dbSignals.map((dbSignal) => this.convertDBSignalToTradingSignal(dbSignal));
+      
+      // Set current signals (latest for each symbol)
+      const symbolSignals = new Map<string, TradingSignal>();
+      this.signalHistory.forEach(signal => {
+        const existing = symbolSignals.get(signal.symbol);
+        if (!existing || signal.timestamp > existing.timestamp) {
+          symbolSignals.set(signal.symbol, signal);
+        }
+      });
+      
+      this.currentSignals = symbolSignals;
     } catch (error) {
       console.error('Error loading recent signals:', error);
     }
@@ -156,7 +172,7 @@ export class AutonomousTradingEngine {
   private startContinuousMonitoring() {
     if (this.monitoringInterval) return;
     
-    console.log('🔄 Starting ENHANCED AI monitoring every 10 minutes with learning capabilities...');
+    console.log('🔄 Starting ENHANCED AI monitoring every 10 minutes with 1% risk management...');
     
     // Initial scan
     this.performMonitoringCycle();
@@ -170,10 +186,10 @@ export class AutonomousTradingEngine {
   private async performMonitoringCycle() {
     const gmtPlus3Time = this.getCurrentGMTPlus3Time();
     const timestamp = gmtPlus3Time.toLocaleTimeString();
-    console.log(`🔍 [${timestamp} GMT+3 Bucharest] ENHANCED AI analysis with TradingView, DXY, Interactive Charts, and Learning...`);
+    console.log(`🔍 [${timestamp} GMT+3 Bucharest] ENHANCED AI analysis with 1% risk management...`);
     
     // Check if market is open
-    if (!this.isMarketHours()) {
+    if (!MarketPriceService.isMarketOpen()) {
       console.log(`⏰ Market closed (GMT+3). Skipping analysis cycle.`);
       return;
     }
@@ -181,41 +197,72 @@ export class AutonomousTradingEngine {
     // Check for upcoming high-impact news
     await this.checkUpcomingNews();
     
-    // Generate signals using enhanced AI with learning
-    await this.generateEnhancedRealTimeSignals();
+    // Generate one signal per symbol using enhanced AI with learning
+    await this.generateSingleSignalPerSymbol();
     
-    // Simulate trade outcomes for learning (in production, this would be real market data)
-    this.learningEngine.simulateTradeOutcomes();
+    // Check existing trade outcomes for learning
+    await this.checkTradeOutcomes();
     
-    console.log(`✅ [${timestamp} GMT+3] ENHANCED AI analysis cycle completed`);
+    console.log(`✅ [${timestamp} GMT+3] ENHANCED AI analysis cycle completed with 1% risk`);
   }
 
-  private async generateEnhancedRealTimeSignals() {
+  private async generateSingleSignalPerSymbol() {
     const symbols = ['XAUUSD', 'EURUSD'];
     
     for (const symbol of symbols) {
       try {
-        console.log(`🧠 ENHANCED AI analysis for ${symbol} with TradingView, DXY, Interactive Charts, and Learning...`);
+        console.log(`🧠 ENHANCED AI analysis for ${symbol} with 1% risk management...`);
         
         // Use Enhanced AI Analyzer with learning capabilities
         const signal = await EnhancedAIAnalyzer.analyzeSymbolWithLearning(symbol);
         
         if (signal) {
-          await this.saveAndAddSignal(signal);
-          console.log(`📊 ENHANCED ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence) - GMT+3 Bucharest`);
+          // Replace existing signal for this symbol
+          this.currentSignals.set(symbol, signal);
+          await this.saveSignal(signal);
+          console.log(`📊 NEW ${signal.signal} signal: ${symbol} @ ${signal.entryPrice} (${Math.round(signal.confidence * 100)}% confidence)`);
         } else {
-          console.log(`⏸️ No ENHANCED signal for ${symbol} - quality/learning conditions not met`);
+          console.log(`⏸️ No signal for ${symbol} - quality/learning conditions not met`);
         }
         
-        // Add delay between symbols to avoid API rate limiting (increased for more sources)
+        // Add delay between symbols to avoid API rate limiting
         await new Promise(resolve => setTimeout(resolve, 5000));
         
       } catch (error) {
-        console.error(`Error in ENHANCED analysis for ${symbol}:`, error);
+        console.error(`Error in analysis for ${symbol}:`, error);
       }
     }
   }
 
+  private async checkTradeOutcomes() {
+    // Check current signals for TP/SL hits
+    for (const [symbol, signal] of this.currentSignals) {
+      const tpslStatus = MarketPriceService.checkTPSLLevels(signal);
+      
+      if (tpslStatus.stopLossHit) {
+        console.log(`🔴 Stop Loss hit for ${symbol} at ${tpslStatus.currentPrice}`);
+        // Signal completed - move to history and generate new one
+        this.moveSignalToHistory(symbol);
+      } else if (tpslStatus.tp1Hit || tpslStatus.tp2Hit || tpslStatus.tp3Hit) {
+        console.log(`🟢 Take Profit hit for ${symbol} at ${tpslStatus.currentPrice}`);
+        // Signal completed - move to history and generate new one
+        this.moveSignalToHistory(symbol);
+      }
+    }
+  }
+
+  private moveSignalToHistory(symbol: string) {
+    const signal = this.currentSignals.get(symbol);
+    if (signal) {
+      this.signalHistory.unshift(signal);
+      this.currentSignals.delete(symbol);
+      
+      // Keep history limited
+      if (this.signalHistory.length > 100) {
+        this.signalHistory = this.signalHistory.slice(0, 100);
+      }
+    }
+  }
   private async checkUpcomingNews() {
     const now = new Date();
     const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
@@ -670,7 +717,7 @@ export class AutonomousTradingEngine {
 
   private createEnhancedTradingSignal(symbol: string, signalType: 'BUY' | 'SELL', marketData: any, brainData: BrainData): TradingSignal {
     const entryPrice = marketData.currentPrice;
-    const riskAmount = entryPrice * 0.02; // 2% risk
+    const riskAmount = entryPrice * 0.01; // 1% risk
     
     let stopLoss: number;
     let takeProfit1: number;
@@ -706,7 +753,7 @@ export class AutonomousTradingEngine {
       reasoning: this.generateEnhancedReasoning(signalType, marketData, brainData),
       source: this.getSourceDescription(marketData),
       trend: marketData.trend,
-      riskPercentage: 2
+      riskPercentage: 1
     };
   }
 
@@ -715,7 +762,7 @@ export class AutonomousTradingEngine {
     const confidence = Math.round(brainData.confidence_level * 100);
     const sourceType = marketData.source_type || 'technical_analysis';
     
-    let reasoning = `${signalType} signal with ${confidence}% confidence from ${sourceType.replace('_', ' ')}. `;
+    let reasoning = `${signalType} signal with ${confidence}% confidence from ${sourceType.replace('_', ' ')} (1% risk). `;
     reasoning += `${insights}. `;
     reasoning += `RSI at ${marketData.rsi.toFixed(1)} `;
     
@@ -725,7 +772,7 @@ export class AutonomousTradingEngine {
       reasoning += `indicates bearish pressure. Entry below resistance at ${marketData.resistance}, `;
     }
     
-    reasoning += `targeting ${marketData.riskRewardRatio || 1.8}:1 R:R with 2% risk management.`;
+    reasoning += `targeting ${marketData.riskRewardRatio || 2.0}:1 R:R with 1% risk management.`;
     
     if (marketData.newsEvent) {
       reasoning += ` News catalyst: ${marketData.newsEvent}.`;
@@ -744,7 +791,7 @@ export class AutonomousTradingEngine {
     }
   }
 
-  private async saveAndAddSignal(signal: TradingSignal) {
+  private async saveSignal(signal: TradingSignal) {
     // Save to database
     const dbSignal: TradingSignalDB = {
       symbol: signal.symbol,
@@ -764,16 +811,24 @@ export class AutonomousTradingEngine {
     
     await SupabaseBrainService.saveSignal(dbSignal);
     
-    // Add to local signals
-    this.signals.unshift(signal);
-    if (this.signals.length > 100) {
-      this.signals = this.signals.slice(0, 100);
+    // Add to signal history
+    this.signalHistory.unshift(signal);
+    if (this.signalHistory.length > 100) {
+      this.signalHistory = this.signalHistory.slice(0, 100);
     }
   }
 
   // Public methods
-  getSignals(): TradingSignal[] {
-    return this.signals;
+  getCurrentSignals(): Map<string, TradingSignal> {
+    return this.currentSignals;
+  }
+
+  getSignalHistory(): TradingSignal[] {
+    return this.signalHistory;
+  }
+
+  getCurrentSignal(symbol: string): TradingSignal | null {
+    return this.currentSignals.get(symbol) || null;
   }
 
   getIsMonitoring(): boolean {
@@ -785,18 +840,18 @@ export class AutonomousTradingEngine {
   }
 
   getPerformanceMetrics() {
-    const totalSignals = this.signals.length;
-    const buySignals = this.signals.filter(s => s.signal === 'BUY').length;
-    const sellSignals = this.signals.filter(s => s.signal === 'SELL').length;
-    const holdSignals = this.signals.filter(s => s.signal === 'HOLD').length;
+    const totalSignals = this.signalHistory.length;
+    const buySignals = this.signalHistory.filter(s => s.signal === 'BUY').length;
+    const sellSignals = this.signalHistory.filter(s => s.signal === 'SELL').length;
+    const holdSignals = this.signalHistory.filter(s => s.signal === 'HOLD').length;
     
     const avgConfidence = totalSignals > 0 
-      ? this.signals.reduce((sum, signal) => sum + signal.confidence, 0) / totalSignals 
+      ? this.signalHistory.reduce((sum, signal) => sum + signal.confidence, 0) / totalSignals 
       : 0;
     
     const now = Date.now();
     const oneHourAgo = now - (60 * 60 * 1000);
-    const recentSignals = this.signals.filter(s => s.timestamp.getTime() > oneHourAgo);
+    const recentSignals = this.signalHistory.filter(s => s.timestamp.getTime() > oneHourAgo);
     
     // Include learning metrics
     const learningMetrics = this.learningEngine.getMetrics();
@@ -827,16 +882,6 @@ export class AutonomousTradingEngine {
     return new Date(utc + (3 * 3600000));
   }
 
-  private isMarketHours(): boolean {
-    const gmtPlus3 = this.getCurrentGMTPlus3Time();
-    const hour = gmtPlus3.getHours();
-    const day = gmtPlus3.getDay();
-    
-    // Forex market is open 24/5, closed on weekends
-    if (day === 0 || day === 6) return false; // Sunday or Saturday
-    
-    return true;
-  }
 
   stopMonitoring() {
     if (this.monitoringInterval) {
@@ -844,5 +889,6 @@ export class AutonomousTradingEngine {
       this.monitoringInterval = null;
     }
     this.isMonitoring = false;
+    MarketPriceService.cleanup();
   }
 }

@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SignalCard } from './components/SignalCard';
+import { TradingTabs } from './components/TradingTabs';
 import { PerformanceMetrics } from './components/PerformanceMetrics';
 import { BotStatus } from './components/BotStatus';
 import { AutonomousTradingEngine } from './services/autonomousTradingEngine';
 import { TradingSignal, BotMemory } from './types/trading';
 
 function App() {
-  const [signals, setSignals] = useState<TradingSignal[]>([]);
+  const [xauusdSignal, setXauusdSignal] = useState<TradingSignal | null>(null);
+  const [eurusdSignal, setEurusdSignal] = useState<TradingSignal | null>(null);
+  const [signalHistory, setSignalHistory] = useState<TradingSignal[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>('XAUUSD');
   const [botMemory, setBotMemory] = useState<BotMemory>({
     totalPagesLearned: 0,
     lastLearningSession: new Date(),
@@ -20,8 +23,12 @@ function App() {
 
   // Update signals from trading engine
   const updateSignals = useCallback(() => {
-    const newSignals = tradingEngine.getSignals();
-    setSignals(newSignals);
+    const currentSignals = tradingEngine.getCurrentSignals();
+    const history = tradingEngine.getSignalHistory();
+    
+    setXauusdSignal(currentSignals.get('XAUUSD') || null);
+    setEurusdSignal(currentSignals.get('EURUSD') || null);
+    setSignalHistory(history);
     
     // Update bot memory with brain data
     const brainData = tradingEngine.getBrainData();
@@ -45,7 +52,7 @@ function App() {
 
   // Update signals periodically
   useEffect(() => {
-    const interval = setInterval(updateSignals, 30000); // Check every 30 seconds for UI updates
+    const interval = setInterval(updateSignals, 10000); // Check every 10 seconds for UI updates
     return () => clearInterval(interval);
   }, [updateSignals]);
 
@@ -58,6 +65,9 @@ function App() {
   // Get performance metrics
   const performanceMetrics = tradingEngine.getPerformanceMetrics();
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white">
       <div className="container mx-auto px-4 py-6 space-y-6">
@@ -79,72 +89,48 @@ function App() {
           totalPagesLearned={botMemory.totalPagesLearned}
         />
 
-        {/* Autonomous Brain Status */}
-        <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl p-6">
+        {/* Enhanced AI Status */}
+        <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
-              <h3 className="text-lg font-semibold text-white">ENHANCED AI: Barchart + TradingView + DXY + Interactive Charts + Learning (GMT+3 Bucharest)</h3>
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <h3 className="text-lg font-semibold text-white">ENHANCED AI: 1% Risk Management + Continuous Learning (GMT+3)</h3>
             </div>
             <div className="text-green-400 text-sm">
-              Enhanced AI + TradingView + DXY + Learning + Supabase
+              One Signal Per Currency + TP Tracking
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-gray-400">Content Sources</div>
-              <div className="text-white font-medium">Barchart + TradingView + DXY</div>
-            </div>
-            <div>
-              <div className="text-gray-400">Analysis Frequency</div>
-              <div className="text-purple-400 font-medium">Every 10 min</div>
-            </div>
-            <div>
               <div className="text-gray-400">Risk Management</div>
-              <div className="text-blue-400 font-medium">2% Adaptive</div>
+              <div className="text-green-400 font-medium">1% Per Trade</div>
             </div>
             <div>
-              <div className="text-gray-400">Signal Quality</div>
-              <div className="text-orange-400 font-medium">Multi-Source Learning AI</div>
+              <div className="text-gray-400">Signal Strategy</div>
+              <div className="text-blue-400 font-medium">One Per Currency</div>
+            </div>
+            <div>
+              <div className="text-gray-400">TP Tracking</div>
+              <div className="text-purple-400 font-medium">Real-time</div>
+            </div>
+            <div>
+              <div className="text-gray-400">Learning</div>
+              <div className="text-orange-400 font-medium">Continuous</div>
             </div>
           </div>
         </div>
 
-        {/* Trading Signals */}
-        <div className="w-full">
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">Live Trading Signals</h2>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>Enhanced AI + TradingView + DXY + Interactive Charts + Learning</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-[800px] overflow-y-auto">
-              {signals.length > 0 ? (
-                signals.map((signal, index) => (
-                  <SignalCard 
-                    key={signal.id} 
-                    signal={signal} 
-                    isLatest={index === 0 && isActive}
-                  />
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-gray-400 text-lg mb-2">No signals yet</div>
-                  <div className="text-gray-500">
-                    Enhanced AI is analyzing Barchart + TradingView + DXY correlation + Interactive Charts + learning from outcomes... High-quality signals every 10 minutes (GMT+3 Bucharest)!
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Trading Interface with Tabs */}
+        <TradingTabs
+          xauusdSignal={xauusdSignal}
+          eurusdSignal={eurusdSignal}
+          previousSignals={signalHistory}
+          onTabChange={handleTabChange}
+        />
 
         {/* Footer */}
         <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-700">
-          <p>Enhanced AI Trading Bot • Barchart + TradingView + DXY + Interactive Charts • Learning Engine • GMT+3 Bucharest • 2% Adaptive Risk • 10-Min Signals</p>
+          <p>Enhanced AI Trading Bot • 1% Risk Management • Continuous Learning • GMT+3 Bucharest • Real-time TP Tracking</p>
           <p className="mt-1">⚠️ For educational purposes only. Not financial advice. Always verify signals independently.</p>
         </div>
       </div>
