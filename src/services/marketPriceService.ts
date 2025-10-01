@@ -8,6 +8,7 @@ interface MarketPrice {
   ask: number;
   high24h: number;
   low24h: number;
+  source: 'TRADINGVIEW' | 'SIMULATED';
 }
 
 interface PriceHistory {
@@ -20,46 +21,76 @@ export class MarketPriceService {
   private static priceCache: Map<string, MarketPrice> = new Map();
   private static priceHistory: Map<string, PriceHistory[]> = new Map();
   private static updateInterval: NodeJS.Timeout | null = null;
+  private static lastTradingViewUpdate: Map<string, number> = new Map();
 
-  // Real-time price simulation with realistic market movements
-  private static readonly BASE_PRICES = {
-    'XAUUSD': 2650.00,  // Gold base price
-    'EURUSD': 1.0550,   // EUR/USD base price
-    'GBPUSD': 1.2650,   // GBP/USD base price
-    'USDJPY': 149.50,   // USD/JPY base price
-    'AUDUSD': 0.6750,   // AUD/USD base price
-    'USDCAD': 1.3550    // USD/CAD base price
+  // Fallback prices if TradingView extraction fails
+  private static readonly FALLBACK_PRICES = {
+    'XAUUSD': 2650.00,
+    'EURUSD': 1.0550,
+    'GBPUSD': 1.2650,
+    'USDJPY': 149.50,
+    'AUDUSD': 0.6750,
+    'USDCAD': 1.3550
   };
 
   static initialize() {
     // Initialize prices
-    Object.keys(this.BASE_PRICES).forEach(symbol => {
+    Object.keys(this.FALLBACK_PRICES).forEach(symbol => {
       this.updatePrice(symbol);
     });
 
-    // Start real-time price updates every 5 seconds
+    // Start real-time price updates every 30 seconds (to avoid rate limiting TradingView)
     this.updateInterval = setInterval(() => {
-      Object.keys(this.BASE_PRICES).forEach(symbol => {
+      Object.keys(this.FALLBACK_PRICES).forEach(symbol => {
         this.updatePrice(symbol);
       });
-    }, 5000);
+    }, 30000);
 
-    console.log('📊 Market Price Service initialized with real-time updates');
+    console.log('📊 Market Price Service initialized with TradingView price extraction');
   }
 
-  private static updatePrice(symbol: string) {
-    const basePrice = this.BASE_PRICES[symbol as keyof typeof this.BASE_PRICES];
+  private static async updatePrice(symbol: string) {
+    const fallbackPrice = this.FALLBACK_PRICES[symbol as keyof typeof this.FALLBACK_PRICES];
     const currentPrice = this.priceCache.get(symbol)?.price || basePrice;
     
-    // Realistic price movement simulation
-    const volatility = this.getVolatility(symbol);
-    const trend = this.getTrendBias(symbol);
-    const randomMovement = (Math.random() - 0.5) * 2; // -1 to 1
-    const trendMovement = trend * 0.3; // Trend bias
+    // Try to get real price from TradingView (with rate limiting)
+    let realPrice: number | null = null;
+    const lastUpdate = this.lastTradingViewUpdate.get(symbol) || 0;
+    const now = Date.now();
     
-    // Calculate price change
-    const priceChange = (randomMovement + trendMovement) * volatility * currentPrice;
-    const newPrice = Math.max(0, currentPrice + priceChange);
+    // Only fetch from TradingView every 2 minutes per symbol to avoid rate limiting
+    if (now - lastUpdate > 120000) {
+      try {
+        console.log(`🔄 Fetching real price for ${symbol} from TradingView...`);
+        const sentiment = await TradingViewExtractor.extractTradingViewSentiment(symbol);
+        if (sentiment?.currentPrice) {
+          realPrice = sentiment.currentPrice;
+          this.lastTradingViewUpdate.set(symbol, now);
+          console.log(`✅ Real price for ${symbol}: ${realPrice}`);
+        }
+      } catch (error) {
+        console.warn(`Failed to get real price for ${symbol}, using simulation:`, error);
+      }
+    }
+    
+    // Use real price if available, otherwise simulate realistic movement
+    let newPrice: number;
+    let source: 'TRADINGVIEW' | 'SIMULATED';
+    
+    if (realPrice) {
+      newPrice = realPrice;
+      source = 'TRADINGVIEW';
+    } else {
+      // Simulate realistic price movement
+      const volatility = this.getVolatility(symbol);
+      const trend = this.getTrendBias(symbol);
+      const randomMovement = (Math.random() - 0.5) * 2;
+      const trendMovement = trend * 0.3;
+      
+      const priceChange = (randomMovement + trendMovement) * volatility * currentPrice;
+      newPrice = Math.max(0, currentPrice + priceChange);
+      source = 'SIMULATED';
+    }
     
     // Calculate spread (bid/ask)
     const spread = this.getSpread(symbol);
@@ -67,7 +98,7 @@ export class MarketPriceService {
     const ask = newPrice + spread / 2;
     
     // Get previous price for change calculation
-    const previousPrice = this.priceCache.get(symbol)?.price || basePrice;
+    const previousPrice = this.priceCache.get(symbol)?.price || fallbackPrice;
     const change = newPrice - previousPrice;
     const changePercent = (change / previousPrice) * 100;
     
@@ -85,13 +116,18 @@ export class MarketPriceService {
       bid: Number(bid.toFixed(this.getDecimals(symbol))),
       ask: Number(ask.toFixed(this.getDecimals(symbol))),
       high24h: Number(high24h.toFixed(this.getDecimals(symbol))),
-      low24h: Number(low24h.toFixed(this.getDecimals(symbol)))
+      low24h: Number(low24h.toFixed(this.getDecimals(symbol))),
+      source
     };
     
     this.priceCache.set(symbol, marketPrice);
     
     // Store price history
     this.addPriceHistory(symbol, newPrice);
+    
+    if (source === 'TRADINGVIEW') {
+      console.log(`📊 Updated ${symbol} with real TradingView price: ${newPrice}`);
+    }
   }
 
   private static getVolatility(symbol: string): number {
@@ -161,6 +197,22 @@ export class MarketPriceService {
   static getCurrentPrice(symbol: string): MarketPrice | null {
     return this.priceCache.get(symbol) || null;
   }
+  
+  static async getRealTimePrice(symbol: string): Promise<number | null> {
+    try {
+      const realPrice = await TradingViewExtractor.getCurrentPrice(symbol);
+      if (realPrice) {
+        console.log(`📊 Real-time price for ${symbol}: ${realPrice}`);
+        return realPrice;
+      }
+    } catch (error) {
+      console.warn(`Failed to get real-time price for ${symbol}:`, error);
+    }
+    
+    // Fallback to cached price
+    const cached = this.getCurrentPrice(symbol);
+    return cached?.price || null;
+  }
 
   static getAllPrices(): Map<string, MarketPrice> {
     return new Map(this.priceCache);
@@ -211,6 +263,7 @@ export class MarketPriceService {
     tp3Hit: boolean;
     stopLossHit: boolean;
     currentPrice: number;
+    priceSource: 'TRADINGVIEW' | 'SIMULATED';
   } {
     const currentPrice = this.getCurrentPrice(signal.symbol);
     if (!currentPrice) {
@@ -219,7 +272,8 @@ export class MarketPriceService {
         tp2Hit: false,
         tp3Hit: false,
         stopLossHit: false,
-        currentPrice: signal.entryPrice
+        currentPrice: signal.entryPrice,
+        priceSource: 'SIMULATED'
       };
     }
 
@@ -231,7 +285,8 @@ export class MarketPriceService {
         tp2Hit: price >= signal.takeProfit2,
         tp3Hit: price >= signal.takeProfit3,
         stopLossHit: price <= signal.stopLoss,
-        currentPrice: price
+        currentPrice: price,
+        priceSource: currentPrice.source
       };
     } else {
       return {
@@ -239,8 +294,10 @@ export class MarketPriceService {
         tp2Hit: price <= signal.takeProfit2,
         tp3Hit: price <= signal.takeProfit3,
         stopLossHit: price >= signal.stopLoss,
-        currentPrice: price
+        currentPrice: price,
+        priceSource: currentPrice.source
       };
     }
   }
+import { TradingViewExtractor } from './tradingViewExtractor';
 }

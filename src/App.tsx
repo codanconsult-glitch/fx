@@ -94,20 +94,20 @@ function App() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-              <h3 className="text-lg font-semibold text-white">ENHANCED AI: 1% Risk Management + Continuous Learning (GMT+3)</h3>
+              <h3 className="text-lg font-semibold text-white">ENHANCED AI: Real TradingView Prices + 1% Risk + Learning (GMT+3)</h3>
             </div>
             <div className="text-green-400 text-sm">
-              One Signal Per Currency + TP Tracking
+              Real Prices + TP Tracking
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-gray-400">Risk Management</div>
-              <div className="text-green-400 font-medium">1% Per Trade</div>
+              <div className="text-gray-400">Price Source</div>
+              <div className="text-green-400 font-medium">TradingView Real</div>
             </div>
             <div>
-              <div className="text-gray-400">Signal Strategy</div>
-              <div className="text-blue-400 font-medium">One Per Currency</div>
+              <div className="text-gray-400">Risk Management</div>
+              <div className="text-blue-400 font-medium">1% Per Trade</div>
             </div>
             <div>
               <div className="text-gray-400">TP Tracking</div>

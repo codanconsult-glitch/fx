@@ -18,6 +18,12 @@ interface TradingViewSentiment {
   expertConsensus: string;
   marketMood: string;
   technicalBias: string;
+  currentPrice?: number;
+  priceChange?: number;
+  priceChangePercent?: number;
+  high24h?: number;
+  low24h?: number;
+  volume?: number;
 }
 
 interface DiffbotResponse {
@@ -75,14 +81,18 @@ export class TradingViewExtractor {
     }
   }
 
-  private static analyzeTradingViewContent(text: string, symbol: string): TradingViewSentiment {
+  private static analyzeTradingViewContent(text: string, html: string, symbol: string): TradingViewSentiment {
     const lowerText = text.toLowerCase();
+    const lowerHtml = html.toLowerCase();
     
     // Extract expert ideas and sentiment
     const expertIdeas: TradingViewIdea[] = [];
     let bullishCount = 0;
     let bearishCount = 0;
     let neutralCount = 0;
+    
+    // Extract current price from TradingView content
+    const priceData = this.extractPriceData(text, html, symbol);
 
     // Analyze sentiment keywords
     const bullishKeywords = [
@@ -173,6 +183,107 @@ export class TradingViewExtractor {
       expertConsensus,
       marketMood,
       technicalBias
+      currentPrice: priceData.currentPrice,
+      priceChange: priceData.priceChange,
+      priceChangePercent: priceData.priceChangePercent,
+      high24h: priceData.high24h,
+      low24h: priceData.low24h,
+      volume: priceData.volume
     };
+  }
+  
+  private static extractPriceData(text: string, html: string, symbol: string): {
+    currentPrice?: number;
+    priceChange?: number;
+    priceChangePercent?: number;
+    high24h?: number;
+    low24h?: number;
+    volume?: number;
+  } {
+    const priceData: any = {};
+    
+    try {
+      // Extract current price based on symbol type
+      let priceRegex: RegExp;
+      let priceRange: { min: number; max: number };
+      
+      if (symbol === 'XAUUSD') {
+        // Gold price patterns: $2650.50, 2650.50, 2,650.50
+        priceRegex = /(?:\$|USD\s*)?(\d{1,2}[,\s]?\d{3}\.?\d{0,2})/g;
+        priceRange = { min: 1800, max: 3000 };
+      } else if (symbol === 'EURUSD') {
+        // EUR/USD price patterns: 1.0550, 1.05500
+        priceRegex = /(1\.\d{4,5})/g;
+        priceRange = { min: 0.9000, max: 1.3000 };
+      } else if (symbol === 'GBPUSD') {
+        // GBP/USD price patterns: 1.2650
+        priceRegex = /(1\.[12]\d{3,4})/g;
+        priceRange = { min: 1.1000, max: 1.4000 };
+      } else if (symbol === 'USDJPY') {
+        // USD/JPY price patterns: 149.50
+        priceRegex = /(\d{2,3}\.\d{2,3})/g;
+        priceRange = { min: 100, max: 160 };
+      } else {
+        // Default forex pair pattern
+        priceRegex = /(\d+\.\d{4,5})/g;
+        priceRange = { min: 0.5, max: 2.0 };
+      }
+      
+      // Extract prices from text and HTML
+      const allText = text + ' ' + html;
+      const priceMatches: number[] = [];
+      let match;
+      
+      while ((match = priceRegex.exec(allText)) !== null) {
+        const price = parseFloat(match[1].replace(/[,\s]/g, ''));
+        if (price >= priceRange.min && price <= priceRange.max) {
+          priceMatches.push(price);
+        }
+      }
+      
+      if (priceMatches.length > 0) {
+        // Use the most recent/common price
+        const sortedPrices = priceMatches.sort((a, b) => b - a);
+        priceData.currentPrice = sortedPrices[0];
+        
+        // Calculate approximate price change (simplified)
+        if (sortedPrices.length > 1) {
+          const previousPrice = sortedPrices[1];
+          priceData.priceChange = priceData.currentPrice - previousPrice;
+          priceData.priceChangePercent = (priceData.priceChange / previousPrice) * 100;
+        }
+        
+        // Estimate high/low from available prices
+        priceData.high24h = Math.max(...priceMatches);
+        priceData.low24h = Math.min(...priceMatches);
+      }
+      
+      // Extract volume if available (simplified)
+      const volumeMatch = allText.match(/volume[:\s]*(\d+[,\d]*)/i);
+      if (volumeMatch) {
+        priceData.volume = parseInt(volumeMatch[1].replace(/,/g, ''));
+      }
+      
+      // Extract percentage changes
+      const percentMatch = allText.match(/([+-]?\d+\.?\d*)%/);
+      if (percentMatch && !priceData.priceChangePercent) {
+        priceData.priceChangePercent = parseFloat(percentMatch[1]);
+      }
+      
+    } catch (error) {
+      console.warn(`Error extracting price data for ${symbol}:`, error);
+    }
+    
+    return priceData;
+  }
+  
+  static async getCurrentPrice(symbol: string): Promise<number | null> {
+    try {
+      const sentiment = await this.extractTradingViewSentiment(symbol);
+      return sentiment?.currentPrice || null;
+    } catch (error) {
+      console.error(`Error getting current price for ${symbol}:`, error);
+      return null;
+    }
   }
 }

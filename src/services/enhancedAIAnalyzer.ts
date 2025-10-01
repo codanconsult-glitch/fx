@@ -341,8 +341,8 @@ export class EnhancedAIAnalyzer {
     let qualityScore = 0;
     const reasoningFactors: string[] = [];
 
-    // Get current market price
-    const currentPrice = this.getCurrentMarketPrice(data.symbol);
+    // Get real current market price from TradingView
+    const currentPrice = await this.getRealCurrentMarketPrice(data.symbol);
 
     // 1. BARCHART CHEAT SHEET ANALYSIS (40% weight)
     if (data.cheatSheet) {
@@ -362,6 +362,11 @@ export class EnhancedAIAnalyzer {
       confidenceBoost += 0.15;
       qualityScore += 0.25;
       reasoningFactors.push(...tvAnalysis.factors);
+      
+      // Use TradingView price if available
+      if (data.tradingViewSentiment.currentPrice) {
+        reasoningFactors.push(`Real TradingView price: ${data.tradingViewSentiment.currentPrice}`);
+      }
     }
 
     // 3. NEWS ANALYSIS (15% weight)
@@ -447,7 +452,7 @@ export class EnhancedAIAnalyzer {
       takeProfit1: riskLevels.takeProfit1,
       takeProfit2: riskLevels.takeProfit2,
       takeProfit3: riskLevels.takeProfit3,
-      riskPercentage: 2.0,
+      riskPercentage: 1.0,
       trend,
       qualityScore,
       learningRecommendations: [],
@@ -529,6 +534,17 @@ export class EnhancedAIAnalyzer {
       if (sentiment.overallSentiment === 'BULLISH') bullishScore += 1;
       else if (sentiment.overallSentiment === 'BEARISH') bearishScore += 1;
       factors.push(`High confidence TradingView analysis (${(sentiment.confidence * 100).toFixed(0)}%)`);
+    }
+    
+    // Price movement analysis
+    if (sentiment.priceChangePercent) {
+      if (sentiment.priceChangePercent > 1) {
+        bullishScore += 1;
+        factors.push(`Strong upward price movement: +${sentiment.priceChangePercent.toFixed(2)}%`);
+      } else if (sentiment.priceChangePercent < -1) {
+        bearishScore += 1;
+        factors.push(`Strong downward price movement: ${sentiment.priceChangePercent.toFixed(2)}%`);
+      }
     }
 
     return { bullishScore, bearishScore, factors };
@@ -643,7 +659,19 @@ export class EnhancedAIAnalyzer {
     return { bullishScore, bearishScore, factors };
   }
 
-  private static getCurrentMarketPrice(symbol: string): number {
+  private static async getRealCurrentMarketPrice(symbol: string): Promise<number> {
+    // Try to get real price from TradingView first
+    try {
+      const realPrice = await MarketPriceService.getRealTimePrice(symbol);
+      if (realPrice) {
+        console.log(`📊 Using real TradingView price for ${symbol}: ${realPrice}`);
+        return realPrice;
+      }
+    } catch (error) {
+      console.warn(`Failed to get real price for ${symbol}, using fallback:`, error);
+    }
+    
+    // Fallback to realistic estimates
     if (symbol === 'XAUUSD') {
       return 2650 + (Math.random() - 0.5) * 100;
     } else if (symbol === 'EURUSD') {
@@ -714,6 +742,15 @@ export class EnhancedAIAnalyzer {
     reasoning += `• Market Risk Level: ${data.marketConditions.riskLevel}\n`;
     reasoning += `• Volatility: ${(data.marketConditions.volatility * 100).toFixed(1)}%\n`;
     reasoning += `• TradingView Sentiment: ${data.marketConditions.tradingViewSentiment}\n`;
+    
+    // Add real price information
+    if (data.tradingViewSentiment?.currentPrice) {
+      reasoning += `• Real TradingView Price: ${data.tradingViewSentiment.currentPrice}\n`;
+      if (data.tradingViewSentiment.priceChangePercent) {
+        reasoning += `• Price Change: ${data.tradingViewSentiment.priceChangePercent.toFixed(2)}%\n`;
+      }
+    }
+    
     reasoning += `• DXY Impact: ${data.marketConditions.dxyImpact}\n`;
     reasoning += `• News Impact: ${data.marketConditions.newsImpact}\n\n`;
 
@@ -729,7 +766,7 @@ export class EnhancedAIAnalyzer {
       reasoning += `• ${insight}\n`;
     });
 
-    reasoning += `\n⚠️ RISK MANAGEMENT: 2% account risk with dynamic adjustment based on market conditions.`;
+    reasoning += `\n⚠️ RISK MANAGEMENT: 1% account risk with dynamic adjustment based on real market conditions.`;
 
     return reasoning;
   }

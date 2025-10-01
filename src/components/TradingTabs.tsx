@@ -134,9 +134,18 @@ export const TradingTabs: React.FC<TradingTabsProps> = ({
         <div className="mb-4 p-3 bg-blue-600/20 border border-blue-500/30 rounded-lg">
           <div className="flex items-center justify-between">
             <span className="text-blue-400 font-medium">Current Price:</span>
-            <span className="text-white font-bold text-lg">
-              ${tpStatus.currentPrice.toFixed(signal.symbol === 'EURUSD' ? 4 : 2)}
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-white font-bold text-lg">
+                ${tpStatus.currentPrice.toFixed(signal.symbol === 'EURUSD' ? 4 : 2)}
+              </span>
+              <span className={`text-xs px-2 py-1 rounded ${
+                tpStatus.priceSource === 'TRADINGVIEW' 
+                  ? 'bg-green-600/20 text-green-400 border border-green-500/30' 
+                  : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
+              }`}>
+                {tpStatus.priceSource === 'TRADINGVIEW' ? 'REAL' : 'SIM'}
+              </span>
+            </div>
           </div>
         </div>
 
