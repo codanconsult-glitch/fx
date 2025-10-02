@@ -182,7 +182,7 @@ export class TradingViewExtractor {
       confidence,
       expertConsensus,
       marketMood,
-      technicalBias
+      technicalBias,
       currentPrice: priceData.currentPrice,
       priceChange: priceData.priceChange,
       priceChangePercent: priceData.priceChangePercent,

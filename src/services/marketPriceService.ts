@@ -17,6 +17,8 @@ interface PriceHistory {
   volume: number;
 }
 
+import { TradingViewExtractor } from './tradingViewExtractor';
+
 export class MarketPriceService {
   private static priceCache: Map<string, MarketPrice> = new Map();
   private static priceHistory: Map<string, PriceHistory[]> = new Map();
@@ -51,7 +53,7 @@ export class MarketPriceService {
 
   private static async updatePrice(symbol: string) {
     const fallbackPrice = this.FALLBACK_PRICES[symbol as keyof typeof this.FALLBACK_PRICES];
-    const currentPrice = this.priceCache.get(symbol)?.price || basePrice;
+    const currentPrice = this.priceCache.get(symbol)?.price || fallbackPrice;
     
     // Try to get real price from TradingView (with rate limiting)
     let realPrice: number | null = null;
@@ -299,5 +301,4 @@ export class MarketPriceService {
       };
     }
   }
-import { TradingViewExtractor } from './tradingViewExtractor';
 }
