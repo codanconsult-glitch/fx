@@ -54,21 +54,32 @@ export class MarketPriceService {
   private static async updatePrice(symbol: string) {
     const fallbackPrice = this.FALLBACK_PRICES[symbol as keyof typeof this.FALLBACK_PRICES];
     const currentPrice = this.priceCache.get(symbol)?.price || fallbackPrice;
-    
-    // Try to get real price from TradingView (with rate limiting)
+
+    // Try to get real price from TradingView via edge function (with rate limiting)
     let realPrice: number | null = null;
     const lastUpdate = this.lastTradingViewUpdate.get(symbol) || 0;
     const now = Date.now();
-    
-    // Only fetch from TradingView every 2 minutes per symbol to avoid rate limiting
-    if (now - lastUpdate > 120000) {
+
+    // Only fetch from TradingView every 30 seconds per symbol to avoid rate limiting
+    if (now - lastUpdate > 30000) {
       try {
         console.log(`🔄 Fetching real price for ${symbol} from TradingView...`);
-        const sentiment = await TradingViewExtractor.extractTradingViewSentiment(symbol);
-        if (sentiment?.currentPrice) {
-          realPrice = sentiment.currentPrice;
-          this.lastTradingViewUpdate.set(symbol, now);
-          console.log(`✅ Real price for ${symbol}: ${realPrice}`);
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const apiUrl = `${supabaseUrl}/functions/v1/fetch-tradingview-prices?symbol=${symbol}`;
+
+        const response = await fetch(apiUrl, {
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.price && data.price > 0) {
+            realPrice = data.price;
+            this.lastTradingViewUpdate.set(symbol, now);
+            console.log(`✅ Real TradingView price for ${symbol}: ${realPrice} (${data.changePercent > 0 ? '+' : ''}${data.changePercent.toFixed(2)}%)`);
+          }
         }
       } catch (error) {
         console.warn(`Failed to get real price for ${symbol}, using simulation:`, error);
@@ -202,15 +213,26 @@ export class MarketPriceService {
   
   static async getRealTimePrice(symbol: string): Promise<number | null> {
     try {
-      const realPrice = await TradingViewExtractor.getCurrentPrice(symbol);
-      if (realPrice) {
-        console.log(`📊 Real-time price for ${symbol}: ${realPrice}`);
-        return realPrice;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const apiUrl = `${supabaseUrl}/functions/v1/fetch-tradingview-prices?symbol=${symbol}`;
+
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.price && data.price > 0) {
+          console.log(`📊 Real-time TradingView price for ${symbol}: ${data.price}`);
+          return data.price;
+        }
       }
     } catch (error) {
       console.warn(`Failed to get real-time price for ${symbol}:`, error);
     }
-    
+
     // Fallback to cached price
     const cached = this.getCurrentPrice(symbol);
     return cached?.price || null;
