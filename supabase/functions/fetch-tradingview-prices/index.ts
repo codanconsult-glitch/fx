@@ -75,7 +75,7 @@ async function fetchForexPrice(symbol: string): Promise<PriceData> {
     
     if (symbol === "XAUUSD") {
       price = await fetchGoldPrice();
-      source = "MetalsAPI";
+      source = "GoldAPI";
     } else {
       price = await fetchCurrencyPairPrice(symbol);
       source = "ForexAPI";
@@ -90,16 +90,18 @@ async function fetchForexPrice(symbol: string): Promise<PriceData> {
       timestamp: Date.now()
     };
     
+    const decimals = symbol === "XAUUSD" ? 2 : symbol.includes("JPY") ? 3 : 5;
+    
     const result: PriceData = {
       symbol,
-      price: parseFloat(price.toFixed(symbol === "XAUUSD" ? 2 : symbol.includes("JPY") ? 3 : 5)),
-      change: parseFloat(change.toFixed(symbol === "XAUUSD" ? 2 : symbol.includes("JPY") ? 3 : 5)),
+      price: parseFloat(price.toFixed(decimals)),
+      change: parseFloat(change.toFixed(decimals)),
       changePercent: parseFloat(changePercent.toFixed(2)),
       timestamp: new Date().toISOString(),
       source
     };
     
-    console.log(`✅ Fetched ${symbol}: ${result.price} (${result.changePercent > 0 ? '+' : ''}${result.changePercent}%)`);
+    console.log(`✅ Fetched ${symbol}: $${result.price} (${result.changePercent > 0 ? '+' : ''}${result.changePercent}%) from ${source}`);
     
     return result;
   } catch (error) {
@@ -118,6 +120,7 @@ async function fetchCurrencyPairPrice(symbol: string): Promise<number> {
       {
         headers: {
           'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0',
         },
       }
     );
@@ -129,14 +132,38 @@ async function fetchCurrencyPairPrice(symbol: string): Promise<number> {
     const data = await response.json();
     
     if (data.rates && data.rates[quoteCurrency]) {
-      return data.rates[quoteCurrency];
+      const rate = data.rates[quoteCurrency];
+      console.log(`API returned ${baseCurrency}/${quoteCurrency}: ${rate}`);
+      return rate;
     }
     
     throw new Error(`Rate not found for ${symbol}`);
   } catch (error) {
-    console.error(`Error fetching ${symbol}:`, error);
+    console.error(`Primary API failed for ${symbol}, trying alternative...`, error);
     
-    const fallbackPrices: { [key: string]: number } = {
+    try {
+      const fallbackResponse = await fetch(
+        `https://open.er-api.com/v6/latest/${baseCurrency}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+      
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json();
+        if (fallbackData.rates && fallbackData.rates[quoteCurrency]) {
+          console.log(`Fallback API returned ${baseCurrency}/${quoteCurrency}: ${fallbackData.rates[quoteCurrency]}`);
+          return fallbackData.rates[quoteCurrency];
+        }
+      }
+    } catch (fallbackError) {
+      console.error(`Fallback API also failed:`, fallbackError);
+    }
+    
+    console.warn(`All APIs failed for ${symbol}, using reasonable estimate`);
+    const estimates: { [key: string]: number } = {
       'EURUSD': 1.0850,
       'GBPUSD': 1.2680,
       'USDJPY': 149.50,
@@ -146,7 +173,7 @@ async function fetchCurrencyPairPrice(symbol: string): Promise<number> {
       'NZDUSD': 0.5850,
     };
     
-    return fallbackPrices[symbol] || 1.0;
+    return estimates[symbol] || 1.0;
   }
 }
 
@@ -157,41 +184,50 @@ async function fetchGoldPrice(): Promise<number> {
       {
         headers: {
           'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0',
         },
       }
     );
     
     if (response.ok) {
       const data = await response.json();
-      if (data && data.price) {
-        return data.price;
+      if (data && Array.isArray(data) && data.length > 0) {
+        const goldData = data[0];
+        if (goldData.price) {
+          console.log(`Metals.live returned gold price: $${goldData.price}`);
+          return goldData.price;
+        }
       }
     }
   } catch (error) {
-    console.warn('Metals.live API failed, trying alternative:', error);
+    console.warn('Metals.live API failed:', error);
   }
   
   try {
     const response = await fetch(
-      'https://www.goldapi.io/api/XAU/USD',
+      'https://data-asg.goldprice.org/dbXRates/USD',
       {
         headers: {
-          'x-access-token': 'goldapi-demo',
-          'Content-Type': 'application/json'
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0',
         },
       }
     );
     
     if (response.ok) {
       const data = await response.json();
-      if (data && data.price) {
-        return data.price;
+      if (data && data.items && data.items.length > 0) {
+        const xauPrice = data.items.find((item: any) => item.curr === 'XAU');
+        if (xauPrice && xauPrice.xauPrice) {
+          console.log(`GoldPrice.org returned gold price: $${xauPrice.xauPrice}`);
+          return xauPrice.xauPrice;
+        }
       }
     }
   } catch (error) {
-    console.warn('GoldAPI failed:', error);
+    console.warn('GoldPrice.org API failed:', error);
   }
   
-  console.log('Using fallback gold price');
+  console.log('All gold APIs failed, using market estimate');
   return 2650.00;
 }

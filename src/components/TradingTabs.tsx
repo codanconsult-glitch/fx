@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Target, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { TradingSignal } from '../types/trading';
 
@@ -17,6 +17,10 @@ interface TPStatus {
   currentPrice: number;
 }
 
+interface RealTimePrices {
+  [symbol: string]: number;
+}
+
 export const TradingTabs: React.FC<TradingTabsProps> = ({
   xauusdSignal,
   eurusdSignal,
@@ -24,6 +28,43 @@ export const TradingTabs: React.FC<TradingTabsProps> = ({
   onTabChange
 }) => {
   const [activeTab, setActiveTab] = useState<'XAUUSD' | 'EURUSD' | 'HISTORY'>('XAUUSD');
+  const [realTimePrices, setRealTimePrices] = useState<RealTimePrices>({});
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      const symbols = ['XAUUSD', 'EURUSD'];
+      const prices: RealTimePrices = {};
+
+      for (const symbol of symbols) {
+        try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const response = await fetch(
+            `${supabaseUrl}/functions/v1/fetch-tradingview-prices?symbol=${symbol}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.price && data.price > 0) {
+              prices[symbol] = data.price;
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching price for ${symbol}:`, error);
+        }
+      }
+
+      setRealTimePrices(prices);
+    };
+
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleTabChange = (tab: 'XAUUSD' | 'EURUSD' | 'HISTORY') => {
     setActiveTab(tab);
@@ -31,13 +72,7 @@ export const TradingTabs: React.FC<TradingTabsProps> = ({
   };
 
   const getCurrentPrice = (symbol: string): number => {
-    // Simulate real market prices
-    if (symbol === 'XAUUSD') {
-      return 2650 + (Math.random() - 0.5) * 100; // Gold price range
-    } else if (symbol === 'EURUSD') {
-      return 1.0550 + (Math.random() - 0.5) * 0.0200; // EUR/USD range
-    }
-    return 0;
+    return realTimePrices[symbol] || (symbol === 'XAUUSD' ? 2650 : 1.0850);
   };
 
   const calculateTPStatus = (signal: TradingSignal): TPStatus => {
