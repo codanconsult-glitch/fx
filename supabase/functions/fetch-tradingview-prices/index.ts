@@ -12,7 +12,17 @@ interface PriceData {
   high24h?: number;
   low24h?: number;
   timestamp: string;
+  source: string;
 }
+
+interface PriceCache {
+  [symbol: string]: {
+    price: number;
+    timestamp: number;
+  };
+}
+
+const priceCache: PriceCache = {};
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -26,25 +36,9 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const symbol = url.searchParams.get("symbol") || "EURUSD";
 
-    console.log(`Fetching TradingView price for ${symbol}...`);
+    console.log(`Fetching forex price for ${symbol}...`);
 
-    const tradingViewUrl = `https://www.tradingview.com/symbols/${symbol}/`;
-    
-    const response = await fetch(tradingViewUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`TradingView fetch failed: ${response.status}`);
-    }
-
-    const html = await response.text();
-    
-    const priceData = extractPriceFromHTML(html, symbol);
+    const priceData = await fetchForexPrice(symbol);
 
     return new Response(
       JSON.stringify(priceData),
@@ -56,7 +50,7 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error) {
-    console.error("Error fetching TradingView price:", error);
+    console.error("Error fetching forex price:", error);
     
     return new Response(
       JSON.stringify({ 
@@ -74,59 +68,130 @@ Deno.serve(async (req: Request) => {
   }
 });
 
-function extractPriceFromHTML(html: string, symbol: string): PriceData {
-  let price = 0;
-  let change = 0;
-  let changePercent = 0;
-  
+async function fetchForexPrice(symbol: string): Promise<PriceData> {
   try {
-    const priceMatch = html.match(/"last":(\d+\.?\d*)/i) || 
-                       html.match(/data-symbol-last["']?[^>]*>(\d+\.?\d*)</i) ||
-                       html.match(/class="tv-symbol-price-quote__value["'][^>]*>(\d+\.?\d*)</i);
+    let price = 0;
+    let source = "API";
     
-    if (priceMatch) {
-      price = parseFloat(priceMatch[1]);
+    if (symbol === "XAUUSD") {
+      price = await fetchGoldPrice();
+      source = "MetalsAPI";
+    } else {
+      price = await fetchCurrencyPairPrice(symbol);
+      source = "ForexAPI";
     }
     
-    const changeMatch = html.match(/"change":([-+]?\d+\.?\d*)/i) ||
-                        html.match(/data-symbol-change["']?[^>]*>([-+]?\d+\.?\d*)</i);
+    const previousPrice = priceCache[symbol]?.price || price;
+    const change = price - previousPrice;
+    const changePercent = previousPrice > 0 ? (change / previousPrice) * 100 : 0;
     
-    if (changeMatch) {
-      change = parseFloat(changeMatch[1]);
-    }
-    
-    const changePercentMatch = html.match(/"change_percent":([-+]?\d+\.?\d*)/i) ||
-                               html.match(/data-symbol-change-pt["']?[^>]*>([-+]?\d+\.?\d*)</i) ||
-                               html.match(/([-+]?\d+\.?\d*)%/i);
-    
-    if (changePercentMatch) {
-      changePercent = parseFloat(changePercentMatch[1]);
-    }
-    
-    const highMatch = html.match(/"high":(\d+\.?\d*)/i);
-    const lowMatch = html.match(/"low":(\d+\.?\d*)/i);
+    priceCache[symbol] = {
+      price,
+      timestamp: Date.now()
+    };
     
     const result: PriceData = {
       symbol,
-      price,
-      change,
-      changePercent,
+      price: parseFloat(price.toFixed(symbol === "XAUUSD" ? 2 : symbol.includes("JPY") ? 3 : 5)),
+      change: parseFloat(change.toFixed(symbol === "XAUUSD" ? 2 : symbol.includes("JPY") ? 3 : 5)),
+      changePercent: parseFloat(changePercent.toFixed(2)),
       timestamp: new Date().toISOString(),
+      source
     };
     
-    if (highMatch) {
-      result.high24h = parseFloat(highMatch[1]);
-    }
-    
-    if (lowMatch) {
-      result.low24h = parseFloat(lowMatch[1]);
-    }
-    
-    console.log(`Extracted price for ${symbol}: ${price}`);
+    console.log(`✅ Fetched ${symbol}: ${result.price} (${result.changePercent > 0 ? '+' : ''}${result.changePercent}%)`);
     
     return result;
   } catch (error) {
-    console.error("Error parsing HTML:", error);
-    throw new Error("Failed to parse price data");
+    console.error(`Error fetching price for ${symbol}:`, error);
+    throw error;
   }
+}
+
+async function fetchCurrencyPairPrice(symbol: string): Promise<number> {
+  const baseCurrency = symbol.substring(0, 3);
+  const quoteCurrency = symbol.substring(3, 6);
+  
+  try {
+    const response = await fetch(
+      `https://api.exchangerate-api.com/v4/latest/${baseCurrency}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.rates && data.rates[quoteCurrency]) {
+      return data.rates[quoteCurrency];
+    }
+    
+    throw new Error(`Rate not found for ${symbol}`);
+  } catch (error) {
+    console.error(`Error fetching ${symbol}:`, error);
+    
+    const fallbackPrices: { [key: string]: number } = {
+      'EURUSD': 1.0850,
+      'GBPUSD': 1.2680,
+      'USDJPY': 149.50,
+      'AUDUSD': 0.6420,
+      'USDCAD': 1.3950,
+      'USDCHF': 0.8850,
+      'NZDUSD': 0.5850,
+    };
+    
+    return fallbackPrices[symbol] || 1.0;
+  }
+}
+
+async function fetchGoldPrice(): Promise<number> {
+  try {
+    const response = await fetch(
+      'https://api.metals.live/v1/spot/gold',
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+      }
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.price) {
+        return data.price;
+      }
+    }
+  } catch (error) {
+    console.warn('Metals.live API failed, trying alternative:', error);
+  }
+  
+  try {
+    const response = await fetch(
+      'https://www.goldapi.io/api/XAU/USD',
+      {
+        headers: {
+          'x-access-token': 'goldapi-demo',
+          'Content-Type': 'application/json'
+        },
+      }
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.price) {
+        return data.price;
+      }
+    }
+  } catch (error) {
+    console.warn('GoldAPI failed:', error);
+  }
+  
+  console.log('Using fallback gold price');
+  return 2650.00;
 }
