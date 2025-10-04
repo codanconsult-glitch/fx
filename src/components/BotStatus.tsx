@@ -55,7 +55,7 @@ export const BotStatus: React.FC<BotStatusProps> = ({ isActive, onToggle, botMem
 
       <div className="mt-4 flex items-center space-x-2 text-green-400">
         <Activity className="w-4 h-4 animate-bounce" />
-        <span className="text-sm">Enhanced AI analyzes Barchart Cheat Sheet + TradingView expert sentiment + News analysis. Continuously learns from trade outcomes and generates high-quality signals every 10 minutes (GMT+3) with adaptive 2% risk management...</span>
+        <span className="text-sm">Enhanced AI analyzes TradingView expert sentiment + News analysis + Market correlations. Continuously learns from trade outcomes and generates high-quality signals every 10 minutes (GMT+3) with adaptive 1% risk management...</span>
       </div>
     </div>
   );

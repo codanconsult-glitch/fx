@@ -8,7 +8,6 @@ import { SupabaseBrainService, MarketAnalysisData } from './supabaseClient';
 
 interface ComprehensiveAnalysis {
   symbol: string;
-  cheatSheet: any;
   tradingViewSentiment: any;
   newsAnalysis: any;
   dxyCorrelation: any;
@@ -55,8 +54,8 @@ export class EnhancedAIAnalyzer {
 
       // Extract comprehensive data from all sources with delays
       const comprehensiveData = await this.extractComprehensiveData(symbol);
-      
-      if (!comprehensiveData.cheatSheet && !comprehensiveData.tradingViewSentiment && !comprehensiveData.newsAnalysis) {
+
+      if (!comprehensiveData.tradingViewSentiment && !comprehensiveData.newsAnalysis) {
         console.warn(`No comprehensive data extracted for ${symbol}`);
         return null;
       }
@@ -130,10 +129,6 @@ export class EnhancedAIAnalyzer {
   private static async extractComprehensiveData(symbol: string): Promise<ComprehensiveAnalysis> {
     console.log(`🔍 Extracting comprehensive data for ${symbol}...`);
 
-    // Extract Barchart Cheat Sheet with error handling
-    const cheatSheet = await this.extractCheatSheetSafely(symbol);
-    await this.delay(3000); // 3 second delay
-
     // Extract TradingView sentiment
     const tradingViewSentiment = await TradingViewExtractor.extractTradingViewSentiment(symbol);
     await this.delay(3000); // 3 second delay
@@ -152,12 +147,11 @@ export class EnhancedAIAnalyzer {
 
     // Determine market conditions
     const marketConditions = this.assessMarketConditions(
-      cheatSheet, tradingViewSentiment, newsAnalysis, dxyCorrelation, interactiveChart
+      tradingViewSentiment, newsAnalysis, dxyCorrelation, interactiveChart
     );
 
     // Save all analysis data to Supabase
     await this.saveAnalysisData(symbol, {
-      cheatSheet,
       tradingViewSentiment,
       newsAnalysis,
       dxyCorrelation,
@@ -166,7 +160,6 @@ export class EnhancedAIAnalyzer {
 
     return {
       symbol,
-      cheatSheet,
       tradingViewSentiment,
       newsAnalysis,
       dxyCorrelation,
@@ -175,37 +168,11 @@ export class EnhancedAIAnalyzer {
     };
   }
 
-  private static async extractCheatSheetSafely(symbol: string): Promise<any> {
-    try {
-      // Use the existing content extractor or create a simplified version
-      const url = `https://www.barchart.com/forex/quotes/%5E${symbol}/cheat-sheet`;
-      console.log(`📊 Extracting Trader's Cheat Sheet for ${symbol}...`);
-      
-      // Simulate cheat sheet data if extraction fails
-      return {
-        title: `${symbol} Trader's Cheat Sheet`,
-        text: `Professional analysis for ${symbol}`,
-        sentiment: 0.5 + (Math.random() - 0.5) * 0.4,
-        confidence: 0.85,
-        technicalIndicators: {
-          recommendation: Math.random() > 0.6 ? 'BUY' : Math.random() > 0.3 ? 'SELL' : 'NEUTRAL',
-          signals: ['MOMENTUM', 'TREND_FOLLOWING'],
-          trend: Math.random() > 0.5 ? 'BULLISH' : 'BEARISH',
-          rsi: 30 + Math.random() * 40,
-          macd: (Math.random() - 0.5) * 2
-        }
-      };
-    } catch (error) {
-      console.error(`Error extracting cheat sheet for ${symbol}:`, error);
-      return null;
-    }
-  }
   private static delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private static assessMarketConditions(
-    cheatSheet: any, 
     tradingViewSentiment: any, 
     newsAnalysis: any,
     dxyCorrelation: any,
@@ -217,14 +184,6 @@ export class EnhancedAIAnalyzer {
     let tvSentiment = 'NEUTRAL';
     let dxyImpact = 'NEUTRAL';
     let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' = 'LOW';
-
-    // Assess from cheat sheet
-    if (cheatSheet?.technicalIndicators) {
-      trend = cheatSheet.technicalIndicators.trend || 'SIDEWAYS';
-      if (cheatSheet.technicalIndicators.signals?.includes('BREAKOUT')) {
-        volatility += 0.01;
-      }
-    }
 
     // Assess from TradingView
     if (tradingViewSentiment) {
@@ -344,42 +303,32 @@ export class EnhancedAIAnalyzer {
     // Get real current market price from TradingView
     const currentPrice = await this.getRealCurrentMarketPrice(data.symbol);
 
-    // 1. BARCHART CHEAT SHEET ANALYSIS (40% weight)
-    if (data.cheatSheet) {
-      const cheatAnalysis = this.analyzeCheatSheet(data.cheatSheet, data.symbol);
-      bullishScore += cheatAnalysis.bullishScore * 3;
-      bearishScore += cheatAnalysis.bearishScore * 3;
-      confidenceBoost += 0.2;
-      qualityScore += 0.3;
-      reasoningFactors.push(...cheatAnalysis.factors);
-    }
-
-    // 2. TRADINGVIEW SENTIMENT ANALYSIS (25% weight)
+    // 1. TRADINGVIEW SENTIMENT ANALYSIS (40% weight)
     if (data.tradingViewSentiment) {
       const tvAnalysis = this.analyzeTradingViewSentiment(data.tradingViewSentiment);
-      bullishScore += tvAnalysis.bullishScore * 2.5;
-      bearishScore += tvAnalysis.bearishScore * 2.5;
-      confidenceBoost += 0.15;
-      qualityScore += 0.25;
+      bullishScore += tvAnalysis.bullishScore * 4;
+      bearishScore += tvAnalysis.bearishScore * 4;
+      confidenceBoost += 0.25;
+      qualityScore += 0.35;
       reasoningFactors.push(...tvAnalysis.factors);
-      
+
       // Use TradingView price if available
       if (data.tradingViewSentiment.currentPrice) {
         reasoningFactors.push(`Real TradingView price: ${data.tradingViewSentiment.currentPrice}`);
       }
     }
 
-    // 3. NEWS ANALYSIS (15% weight)
+    // 2. NEWS ANALYSIS (20% weight)
     if (data.newsAnalysis) {
       const newsAnalysisResult = this.analyzeNews(data.newsAnalysis, data.symbol);
-      bullishScore += newsAnalysisResult.bullishScore * 1.5;
-      bearishScore += newsAnalysisResult.bearishScore * 1.5;
-      confidenceBoost += 0.1;
-      qualityScore += 0.15;
+      bullishScore += newsAnalysisResult.bullishScore * 2;
+      bearishScore += newsAnalysisResult.bearishScore * 2;
+      confidenceBoost += 0.15;
+      qualityScore += 0.2;
       reasoningFactors.push(...newsAnalysisResult.factors);
     }
 
-    // 4. DXY CORRELATION ANALYSIS (20% weight)
+    // 3. DXY CORRELATION ANALYSIS (20% weight)
     if (data.dxyCorrelation) {
       const dxyAnalysis = this.analyzeDXYCorrelation(data.dxyCorrelation, data.symbol);
       bullishScore += dxyAnalysis.bullishScore * 2;
@@ -389,7 +338,7 @@ export class EnhancedAIAnalyzer {
       reasoningFactors.push(...dxyAnalysis.factors);
     }
 
-    // 5. INTERACTIVE CHART ANALYSIS (20% weight)
+    // 4. INTERACTIVE CHART ANALYSIS (20% weight)
     if (data.interactiveChart) {
       const chartAnalysis = this.analyzeInteractiveChart(data.interactiveChart);
       bullishScore += chartAnalysis.bullishScore * 2;
@@ -458,55 +407,6 @@ export class EnhancedAIAnalyzer {
       learningRecommendations: [],
       reasoningFactors
     };
-  }
-
-  private static analyzeCheatSheet(cheatSheet: any, symbol: string): { bullishScore: number; bearishScore: number; factors: string[] } {
-    let bullishScore = 0;
-    let bearishScore = 0;
-    const factors: string[] = [];
-
-    const indicators = cheatSheet.technicalIndicators || {};
-
-    // Professional recommendation analysis
-    switch (indicators.recommendation) {
-      case 'STRONG_BUY':
-        bullishScore += 5;
-        factors.push('Barchart Cheat Sheet: STRONG BUY');
-        break;
-      case 'BUY':
-        bullishScore += 4;
-        factors.push('Barchart Cheat Sheet: BUY');
-        break;
-      case 'STRONG_SELL':
-        bearishScore += 5;
-        factors.push('Barchart Cheat Sheet: STRONG SELL');
-        break;
-      case 'SELL':
-        bearishScore += 4;
-        factors.push('Barchart Cheat Sheet: SELL');
-        break;
-    }
-
-    // Technical signals
-    if (indicators.signals) {
-      indicators.signals.forEach((signal: string) => {
-        switch (signal) {
-          case 'BREAKOUT':
-          case 'MOMENTUM':
-          case 'OVERSOLD':
-            bullishScore += 2;
-            factors.push(`Technical: ${signal}`);
-            break;
-          case 'BREAKDOWN':
-          case 'OVERBOUGHT':
-            bearishScore += 2;
-            factors.push(`Technical: ${signal}`);
-            break;
-        }
-      });
-    }
-
-    return { bullishScore, bearishScore, factors };
   }
 
   private static analyzeTradingViewSentiment(sentiment: any): { bullishScore: number; bearishScore: number; factors: string[] } {

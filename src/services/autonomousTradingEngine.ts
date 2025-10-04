@@ -28,24 +28,7 @@ export class AutonomousTradingEngine {
     'https://nfs.faireconomy.media/ff_calendar_thisweek.xml',
     'https://www.forexfactory.com/calendar',
     'https://www.investing.com/economic-calendar/',
-    
-    // EUR/USD Analysis Sources
-    'https://www.barchart.com/forex/quotes/%5EEURUSD/opinion',
-    'https://www.barchart.com/forex/quotes/%5EEURUSD/trading-strategies',
-    'https://www.barchart.com/forex/quotes/%5EEURUSD/cheat-sheet',
-    'https://www.barchart.com/forex/quotes/%5EEURUSD/news',
-    'https://www.barchart.com/forex/quotes/%5EEURUSD/technical-analysis',
-    
-    // XAU/USD Analysis Sources
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/overview',
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/interactive-chart',
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/technical-chart',
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/opinion',
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/trading-strategies',
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/cheat-sheet',
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/news',
-    'https://www.barchart.com/forex/quotes/%5EXAUUSD/performance',
-    
+
     // Additional Market Sources
     'https://www.dailyfx.com/market-news',
     'https://www.fxstreet.com/economic-calendar',
