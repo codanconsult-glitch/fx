@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { TradingTabs } from './components/TradingTabs';
 import { PerformanceMetrics } from './components/PerformanceMetrics';
 import { BotStatus } from './components/BotStatus';
+import { TradingViewAuthors } from './components/TradingViewAuthors';
 import { AutonomousTradingEngine } from './services/autonomousTradingEngine';
 import { TradingSignal, BotMemory } from './types/trading';
 
@@ -127,6 +128,9 @@ function App() {
           previousSignals={signalHistory}
           onTabChange={handleTabChange}
         />
+
+        {/* TradingView Expert Authors */}
+        <TradingViewAuthors />
 
         {/* Footer */}
         <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-700">
