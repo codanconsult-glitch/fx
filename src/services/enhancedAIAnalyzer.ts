@@ -5,6 +5,7 @@ import { LearningEngine } from './learningEngine';
 import { DXYCorrelationAnalyzer } from './dxyCorrelationAnalyzer';
 import { InteractiveChartAnalyzer } from './interactiveChartAnalyzer';
 import { SupabaseBrainService, MarketAnalysisData } from './supabaseClient';
+import { InvestingPriceService } from './investingPriceService';
 
 interface ComprehensiveAnalysis {
   symbol: string;
@@ -300,8 +301,32 @@ export class EnhancedAIAnalyzer {
     let qualityScore = 0;
     const reasoningFactors: string[] = [];
 
-    // Get real current market price from TradingView
+    // Get real current market price from Investing.com
     const currentPrice = await this.getRealCurrentMarketPrice(data.symbol);
+
+    // Load AI brain data for this symbol
+    const brainData = await SupabaseBrainService.getBrainData(data.symbol);
+    let brainAdjustment = 0;
+
+    if (brainData) {
+      console.log(`🧠 AI Brain loaded for ${data.symbol}: Confidence=${brainData.confidence}, Wins=${brainData.successfulTrades}, Losses=${brainData.failedTrades}`);
+
+      // Apply learned adjustments based on historical performance
+      if (brainData.confidence > 0.75 && brainData.successfulTrades > 5) {
+        brainAdjustment = 2;
+        confidenceBoost += 0.1;
+        reasoningFactors.push(`AI Brain: High confidence (${Math.round(brainData.confidence * 100)}%) from ${brainData.successfulTrades} wins`);
+      } else if (brainData.confidence < 0.4 && brainData.failedTrades > 3) {
+        brainAdjustment = -2;
+        reasoningFactors.push(`AI Brain: Low confidence (${Math.round(brainData.confidence * 100)}%) after ${brainData.failedTrades} losses - reducing signal strength`);
+      }
+
+      // Apply learned insights
+      if (brainData.insights && brainData.insights.length > 0) {
+        const latestInsight = brainData.insights[brainData.insights.length - 1];
+        reasoningFactors.push(`AI Brain Insight: ${latestInsight}`);
+      }
+    }
 
     // 1. TRADINGVIEW SENTIMENT ANALYSIS (40% weight)
     if (data.tradingViewSentiment) {
@@ -346,6 +371,15 @@ export class EnhancedAIAnalyzer {
       confidenceBoost += 0.1;
       qualityScore += 0.2;
       reasoningFactors.push(...chartAnalysis.factors);
+    }
+
+    // Apply brain adjustment to scores
+    if (brainAdjustment > 0) {
+      bullishScore += brainAdjustment;
+    } else if (brainAdjustment < 0) {
+      // Reduce both scores when brain has low confidence
+      bullishScore += brainAdjustment;
+      bearishScore += brainAdjustment;
     }
 
     // Determine signal with enhanced logic
@@ -560,22 +594,20 @@ export class EnhancedAIAnalyzer {
   }
 
   private static async getRealCurrentMarketPrice(symbol: string): Promise<number> {
-    // Try to get real price from TradingView first
     try {
-      const realPrice = await MarketPriceService.getRealTimePrice(symbol);
-      if (realPrice) {
-        console.log(`📊 Using real TradingView price for ${symbol}: ${realPrice}`);
+      const realPrice = await InvestingPriceService.getRealTimePrice(symbol);
+      if (realPrice && realPrice > 0) {
+        console.log(`💰 Using Investing.com price for ${symbol}: ${realPrice}`);
         return realPrice;
       }
     } catch (error) {
-      console.warn(`Failed to get real price for ${symbol}, using fallback:`, error);
+      console.warn(`Failed to get Investing.com price for ${symbol}, using fallback:`, error);
     }
-    
-    // Fallback to realistic estimates
+
     if (symbol === 'XAUUSD') {
-      return 2650 + (Math.random() - 0.5) * 100;
+      return 2650;
     } else if (symbol === 'EURUSD') {
-      return 1.0550 + (Math.random() - 0.5) * 0.0200;
+      return 1.0850;
     }
     return 100;
   }

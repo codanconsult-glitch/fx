@@ -2,7 +2,7 @@ import { TradingSignal } from '../types/trading';
 import { SupabaseBrainService, BrainData, TradingSignalDB } from './supabaseClient';
 import { EnhancedAIAnalyzer } from './enhancedAIAnalyzer';
 import { EnhancedLearningEngine } from './enhancedLearningEngine';
-import { MarketPriceService } from './marketPriceService';
+import { InvestingPriceService } from './investingPriceService';
 
 interface NewsEvent {
   time: Date;
