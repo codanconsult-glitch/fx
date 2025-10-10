@@ -4,6 +4,7 @@ import { PerformanceMetrics } from './components/PerformanceMetrics';
 import { BotStatus } from './components/BotStatus';
 import { TradingViewAuthors } from './components/TradingViewAuthors';
 import { AutonomousTradingEngine } from './services/autonomousTradingEngine';
+import { InvestingPriceService } from './services/investingPriceService';
 import { TradingSignal, BotMemory } from './types/trading';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   const [signalHistory, setSignalHistory] = useState<TradingSignal[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('XAUUSD');
+  const [livePrices, setLivePrices] = useState<{ [key: string]: number }>({});
   const [botMemory, setBotMemory] = useState<BotMemory>({
     totalPagesLearned: 0,
     lastLearningSession: new Date(),
@@ -51,16 +53,42 @@ function App() {
     setIsActive(currentStatus);
   }, [tradingEngine]);
 
+  // Fetch live prices from Investing.com
+  const fetchLivePrices = useCallback(async () => {
+    try {
+      const symbols = ['XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY'];
+      const prices: { [key: string]: number } = {};
+
+      for (const symbol of symbols) {
+        const price = await InvestingPriceService.getRealTimePrice(symbol);
+        if (price > 0) {
+          prices[symbol] = price;
+        }
+      }
+
+      setLivePrices(prices);
+    } catch (error) {
+      console.error('Error fetching live prices:', error);
+    }
+  }, []);
+
   // Update signals periodically
   useEffect(() => {
-    const interval = setInterval(updateSignals, 10000); // Check every 10 seconds for UI updates
+    const interval = setInterval(updateSignals, 10000);
     return () => clearInterval(interval);
   }, [updateSignals]);
+
+  // Fetch live prices periodically
+  useEffect(() => {
+    fetchLivePrices();
+    const interval = setInterval(fetchLivePrices, 30000);
+    return () => clearInterval(interval);
+  }, [fetchLivePrices]);
 
   // Initialize monitoring status
   useEffect(() => {
     setIsActive(tradingEngine.getIsMonitoring());
-    updateSignals(); // Initial load
+    updateSignals();
   }, [tradingEngine]);
 
   // Get performance metrics
@@ -90,12 +118,36 @@ function App() {
           totalPagesLearned={botMemory.totalPagesLearned}
         />
 
+        {/* Live Prices from Investing.com */}
+        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+              <h3 className="text-lg font-semibold text-white">Live Market Prices - Investing.com</h3>
+            </div>
+            <div className="text-blue-400 text-sm">
+              Updated every 30 seconds
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Object.entries(livePrices).map(([symbol, price]) => (
+              <div key={symbol} className="bg-gray-800/50 rounded-lg p-4">
+                <div className="text-gray-400 text-sm mb-1">{symbol}</div>
+                <div className="text-2xl font-bold text-white">
+                  ${price.toFixed(symbol === 'EURUSD' || symbol === 'GBPUSD' ? 5 : symbol.includes('JPY') ? 3 : 2)}
+                </div>
+                <div className="text-xs text-green-400 mt-1">Live</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Enhanced AI Status */}
         <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 border border-green-500/30 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-              <h3 className="text-lg font-semibold text-white">ENHANCED AI: Real TradingView Prices + 1% Risk + Learning (GMT+3)</h3>
+              <h3 className="text-lg font-semibold text-white">ENHANCED AI: Real Investing.com Prices + 1% Risk + AI Brain Learning</h3>
             </div>
             <div className="text-green-400 text-sm">
               Real Prices + TP Tracking
@@ -104,7 +156,7 @@ function App() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <div className="text-gray-400">Price Source</div>
-              <div className="text-green-400 font-medium">TradingView Real</div>
+              <div className="text-green-400 font-medium">Investing.com Live</div>
             </div>
             <div>
               <div className="text-gray-400">Risk Management</div>
@@ -115,8 +167,8 @@ function App() {
               <div className="text-purple-400 font-medium">Real-time</div>
             </div>
             <div>
-              <div className="text-gray-400">Learning</div>
-              <div className="text-orange-400 font-medium">Continuous</div>
+              <div className="text-gray-400">AI Brain</div>
+              <div className="text-orange-400 font-medium">Learning</div>
             </div>
           </div>
         </div>
